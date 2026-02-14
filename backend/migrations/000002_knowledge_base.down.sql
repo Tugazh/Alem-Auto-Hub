@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS knowledge_base;
+DROP EXTENSION IF EXISTS vector;
