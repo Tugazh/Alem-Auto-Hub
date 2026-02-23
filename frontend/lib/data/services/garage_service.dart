@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/car_model.dart';
+import '../cache/cache_service.dart';
 import '../mock/mock_data.dart';
 
 /// Garage Service для работы с /api/v1/garage endpoints
@@ -13,22 +14,23 @@ import '../mock/mock_data.dart';
 /// - DELETE /garage/:id - Удалить гараж
 class GarageService {
   final ApiClient _apiClient;
+  final CacheService _cacheService;
 
-  GarageService(this._apiClient);
+  GarageService(this._apiClient, this._cacheService);
 
   /// Получить список всех гаражей пользователя
   Future<List<CarModel>> getGarages() async {
     try {
       final response = await _apiClient.get('/garage');
-
-      // Если бэкенд вернул placeholder (не List), используем mock данные
       if (response.data is! List) {
         debugPrint('⚠️ Backend not implemented, using mock data');
         return MockData.mockVehicles;
       }
 
       final List<dynamic> data = response.data as List;
-      return data.map((json) => CarModel.fromJson(json)).toList();
+      final cars = data.map((json) => CarModel.fromJson(json)).toList();
+      await _cacheService.saveCars(cars);
+      return cars;
     } catch (e) {
       debugPrint('⚠️ Failed to load from backend: $e, using mock data');
       return MockData.mockVehicles;

@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../core/network/api_client.dart';
 
 /// AI Service для работы с /api/v1/ai endpoints
@@ -9,6 +11,9 @@ import '../../core/network/api_client.dart';
 class AIService {
   final ApiClient _apiClient;
 
+  static const String _fallbackMessage =
+      'Сервис AI временно недоступен. Попробуйте чуть позже.';
+
   AIService(this._apiClient);
 
   /// Отправить сообщение в AI чат
@@ -17,16 +22,43 @@ class AIService {
     required String message,
     List<Map<String, dynamic>>? history,
   }) async {
-    final response = await _apiClient.post(
-      '/agent/message',
-      data: {
-        'user_id': userId,
-        'message': message,
-        if (history != null) 'history': history,
-      },
-    );
+    try {
+      final response = await _apiClient.post(
+        '/agent/message',
+        options: Options(validateStatus: (status) => status != null),
+        data: {
+          'user_id': userId,
+          'message': message,
+          if (history != null) 'history': history,
+        },
+      );
 
-    return response.data as Map<String, dynamic>;
+      if (response.statusCode == null || response.statusCode! >= 400) {
+        return {'message': _buildMockReply(message), 'fallback': true};
+      }
+
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      return {'message': _fallbackMessage};
+    } catch (e) {
+      return {'message': _buildMockReply(message), 'fallback': true};
+    }
+  }
+
+  String _buildMockReply(String message) {
+    final normalized = message.toLowerCase();
+    if (normalized.contains('штраф')) {
+      return 'Сейчас нет доступа к базе штрафов. Проверьте позже или уточните регион.';
+    }
+    if (normalized.contains('обслужив')) {
+      return 'Я могу помочь с планом обслуживания. Укажите марку, модель и пробег.';
+    }
+    if (normalized.contains('проблем') || normalized.contains('диагност')) {
+      return 'Опишите симптомы подробнее (звук, вибрация, когда возникает), и я помогу.';
+    }
+    return _fallbackMessage;
   }
 
   /// Анализ фото повреждений автомобиля

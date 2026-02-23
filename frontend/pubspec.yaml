@@ -48,6 +48,7 @@ dependencies:
   get_it: ^8.0.3
   o3d: ^3.1.2
   file_picker: ^8.3.7
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,18 @@
 services:
+  api:
+    build: .
+    container_name: alem_auto_api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   postgres:
     image: pgvector/pgvector:pg16
     container_name: alem_auto_postgres

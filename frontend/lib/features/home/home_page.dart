@@ -8,6 +8,9 @@ import '../../data/models/maintenance_model.dart';
 import '../car_detail/widgets/car_3d_viewer.dart';
 import '../warehouse/warehouse_page.dart';
 import '../booking/booking_page.dart';
+import '../../shared/widgets/states/empty_state.dart';
+import '../../shared/widgets/states/error_state.dart';
+import '../../shared/widgets/states/loading_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -467,22 +470,11 @@ class _HomePageContentState extends State<HomePageContent> {
     if (_isLoadingCars) {
       return Column(
         children: [
-          SizedBox(
-            height: 340,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: AppColors.primary),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Загрузка автомобилей...',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const LoadingState(
+              height: 340,
+              message: 'Загрузка автомобилей...',
             ),
           ),
           const SizedBox(height: 18),
@@ -494,50 +486,12 @@ class _HomePageContentState extends State<HomePageContent> {
     if (_errorMessage != null) {
       return Column(
         children: [
-          Container(
-            height: 340,
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: AppColors.error),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Ошибка загрузки',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _loadCars,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: const Text('Повторить'),
-                    ),
-                  ],
-                ),
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ErrorState(
+              height: 340,
+              message: _errorMessage!,
+              onRetry: _loadCars,
             ),
           ),
           const SizedBox(height: 18),
@@ -549,41 +503,13 @@ class _HomePageContentState extends State<HomePageContent> {
     if (_cars.isEmpty) {
       return Column(
         children: [
-          Container(
-            height: 340,
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.directions_car_outlined,
-                      size: 64,
-                      color: AppColors.iconGray,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Нет автомобилей',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Добавьте свой первый автомобиль',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const EmptyState(
+              height: 340,
+              icon: Icons.directions_car_outlined,
+              title: 'Нет автомобилей',
+              message: 'Добавьте свой первый автомобиль',
             ),
           ),
           const SizedBox(height: 18),
@@ -703,6 +629,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                         model3dUrl: car.model3dUrl,
                                         fallbackImageUrl: car.imageUrl,
                                         carName: car.name,
+                                        autoActivate: false,
                                       )
                                     : Center(
                                         child: Icon(
@@ -788,16 +715,7 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          ),
+          const LoadingState(height: 150, message: 'Загрузка плана...'),
         ],
       );
     }
@@ -815,23 +733,32 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
+          ErrorState(
+            height: 150,
+            message: _maintenanceError!,
+            onRetry: _loadMaintenance,
+          ),
+        ],
+      );
+    }
+
+    if (_maintenanceItems.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'План обслуживания',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
-            child: Column(
-              children: [
-                Icon(Icons.error_outline, color: AppColors.error, size: 40),
-                const SizedBox(height: 8),
-                Text(
-                  _maintenanceError!,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+          ),
+          const SizedBox(height: 16),
+          const EmptyState(
+            height: 150,
+            icon: Icons.event_available_outlined,
+            title: 'Нет записей ТО',
+            message: 'Добавьте первое обслуживание',
           ),
         ],
       );
