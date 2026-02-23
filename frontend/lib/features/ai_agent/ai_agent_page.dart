@@ -438,10 +438,13 @@ class _AIAgentPageState extends State<AIAgentPage> {
             .toList(),
       );
 
+      final reply = response['message'];
       setState(() {
         _messages.add(
           ChatMessage(
-            text: response['message'] ?? 'Извините, произошла ошибка',
+            text: reply is String && reply.isNotEmpty
+                ? reply
+                : 'Извините, сервис AI временно недоступен.',
             isUser: false,
             timestamp: DateTime.now(),
           ),
@@ -453,7 +456,7 @@ class _AIAgentPageState extends State<AIAgentPage> {
       setState(() {
         _messages.add(
           ChatMessage(
-            text: 'Ошибка: ${e.toString()}',
+            text: 'Сервис AI временно недоступен. Попробуйте позже.',
             isUser: false,
             timestamp: DateTime.now(),
           ),

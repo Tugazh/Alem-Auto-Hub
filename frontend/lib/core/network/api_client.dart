@@ -73,10 +73,12 @@ class ApiClient {
         },
         onError: (error, handler) {
           if (kDebugMode) {
-            debugPrint(
-              '❌ Error: ${error.response?.statusCode} ${error.requestOptions.path}',
-            );
-            debugPrint('📛 Message: ${error.message}');
+            if (!error.requestOptions.path.contains('/agent/message')) {
+              debugPrint(
+                '❌ Error: ${error.response?.statusCode} ${error.requestOptions.path}',
+              );
+              debugPrint('📛 Message: ${error.message}');
+            }
           }
           return handler.next(error);
         },
@@ -166,10 +168,11 @@ class ApiClient {
       case DioExceptionType.receiveTimeout:
         return TimeoutException('Connection timeout');
       case DioExceptionType.badResponse:
-        return ServerException(
-          error.response?.data['message'] ?? 'Server error',
-          error.response?.statusCode ?? 500,
-        );
+        final responseData = error.response?.data;
+        final message = responseData is Map<String, dynamic>
+            ? (responseData['message']?.toString() ?? 'Server error')
+            : (responseData?.toString() ?? 'Server error');
+        return ServerException(message, error.response?.statusCode ?? 500);
       case DioExceptionType.cancel:
         return CancelledException('Request cancelled');
       default:

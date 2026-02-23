@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:o3d/o3d.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -40,6 +41,7 @@ class Car3DViewer extends StatefulWidget {
   final String carName;
   final String? cameraOrbit;
   final bool cameraControls;
+  final bool autoActivate;
 
   const Car3DViewer({
     super.key,
@@ -48,6 +50,7 @@ class Car3DViewer extends StatefulWidget {
     required this.carName,
     this.cameraOrbit,
     this.cameraControls = true,
+    this.autoActivate = true,
   });
 
   @override
@@ -57,12 +60,68 @@ class Car3DViewer extends StatefulWidget {
 class _Car3DViewerState extends State<Car3DViewer> {
   O3DController? _controller;
   bool _isReady = false;
+  bool _checkingAsset = true;
+  bool _assetAvailable = true;
   Timer? _initDebounce;
+  bool _isActive = false;
 
   @override
   void initState() {
     super.initState();
-    _initDebounce = Timer(const Duration(milliseconds: 300), _initViewer);
+    _isActive = widget.autoActivate;
+    if (_isActive) {
+      _checkAssetAvailability();
+      _initDebounce = Timer(const Duration(milliseconds: 150), _initViewer);
+    } else {
+      _checkingAsset = false;
+      _assetAvailable = false;
+    }
+  }
+
+  void _activate3d() {
+    if (_isActive) return;
+    setState(() {
+      _isActive = true;
+      _checkingAsset = true;
+    });
+    _checkAssetAvailability();
+    _initDebounce = Timer(const Duration(milliseconds: 150), _initViewer);
+  }
+
+  Future<void> _checkAssetAvailability() async {
+    final source = widget.model3dUrl;
+    if (source == null || source.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _assetAvailable = false;
+        _checkingAsset = false;
+      });
+      return;
+    }
+
+    if (source.startsWith('assets/')) {
+      try {
+        await rootBundle.load(source);
+        if (!mounted) return;
+        setState(() {
+          _assetAvailable = true;
+          _checkingAsset = false;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _assetAvailable = false;
+          _checkingAsset = false;
+        });
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _assetAvailable = true;
+      _checkingAsset = false;
+    });
   }
 
   Future<void> _initViewer() async {
@@ -93,6 +152,30 @@ class _Car3DViewerState extends State<Car3DViewer> {
       return _buildFallback();
     }
 
+    if (!_isActive) {
+      return _buildInactive();
+    }
+
+    if (_checkingAsset) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
+            Text(
+              'Проверка 3D модели...',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!_assetAvailable) {
+      return _buildFallback();
+    }
+
     if (!_isReady || _controller == null) {
       return Center(
         child: Column(
@@ -109,13 +192,16 @@ class _Car3DViewerState extends State<Car3DViewer> {
       );
     }
 
-    return O3D.asset(
-      src: widget.model3dUrl!,
-      controller: _controller!,
-      ar: false,
-      autoPlay: false,
-      autoRotate: false,
-      cameraControls: widget.cameraControls,
+    return RepaintBoundary(
+      child: O3D.asset(
+        key: ValueKey(widget.model3dUrl),
+        src: widget.model3dUrl!,
+        controller: _controller!,
+        ar: false,
+        autoPlay: false,
+        autoRotate: false,
+        cameraControls: widget.cameraControls,
+      ),
     );
   }
 
@@ -139,6 +225,32 @@ class _Car3DViewerState extends State<Car3DViewer> {
       );
     }
     return _buildIcon();
+  }
+
+  Widget _buildInactive() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(child: _buildFallback()),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: TextButton(
+            onPressed: _activate3d,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Показать 3D'),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildIcon() {

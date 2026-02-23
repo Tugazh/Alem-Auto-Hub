@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/maintenance_model.dart';
+import '../cache/cache_service.dart';
 import '../mock/mock_data.dart';
 
 /// Maintenance Service для работы с /api/v1/maintenance endpoints
@@ -14,8 +15,9 @@ import '../mock/mock_data.dart';
 /// - GET /maintenance/schedule - Расписание обслуживания
 class MaintenanceService {
   final ApiClient _apiClient;
+  final CacheService _cacheService;
 
-  MaintenanceService(this._apiClient);
+  MaintenanceService(this._apiClient, this._cacheService);
 
   /// Получить список обслуживаний для гаража
   Future<List<MaintenanceModel>> getMaintenanceList({
@@ -31,14 +33,17 @@ class MaintenanceService {
         },
       );
 
-      // Если бэкенд вернул placeholder, используем mock данные
       if (response.data is! List) {
         debugPrint('⚠️ Backend not implemented, using mock data');
         return MockData.mockMaintenanceRecords;
       }
 
       final List<dynamic> data = response.data as List;
-      return data.map((json) => MaintenanceModel.fromJson(json)).toList();
+      final items = data
+          .map((json) => MaintenanceModel.fromJson(json))
+          .toList();
+      await _cacheService.saveMaintenance(garageId, items);
+      return items;
     } catch (e) {
       debugPrint('⚠️ Failed to load from backend: $e, using mock data');
       return MockData.mockMaintenanceRecords;

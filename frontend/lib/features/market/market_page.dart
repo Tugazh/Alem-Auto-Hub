@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/di/service_locator.dart';
 import '../../data/models/market_product_model.dart';
+import '../../shared/widgets/states/empty_state.dart';
+import '../../shared/widgets/states/error_state.dart';
+import '../../shared/widgets/states/loading_state.dart';
 
 class MarketPage extends StatefulWidget {
   const MarketPage({super.key});
@@ -146,49 +149,23 @@ class _ProductsTabState extends State<ProductsTab> {
   Widget _buildProductContent() {
     // Loading state
     if (_isLoading) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(40),
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: LoadingState(message: 'Загрузка товаров...'),
       );
     }
 
     // Error state
     if (_error != null) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.error_outline, color: AppColors.error, size: 48),
-            const SizedBox(height: 16),
-            Text(_error!, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadProducts,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: const Text('Повторить'),
-            ),
-          ],
-        ),
-      );
+      return ErrorState(message: _error!, onRetry: _loadProducts);
     }
 
     // Empty state
     if (_products.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(child: Text('Нет товаров')),
+      return const EmptyState(
+        icon: Icons.shopping_bag_outlined,
+        title: 'Нет товаров',
+        message: 'Попробуйте изменить фильтры или зайдите позже',
       );
     }
 
@@ -324,10 +301,11 @@ class _ProductsTabState extends State<ProductsTab> {
 
   Widget _buildCategoryItem(String icon, String label) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
@@ -336,12 +314,15 @@ class _ProductsTabState extends State<ProductsTab> {
             child: Text(icon, style: const TextStyle(fontSize: 32)),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11),
-          maxLines: 2,
+        const SizedBox(height: 6),
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

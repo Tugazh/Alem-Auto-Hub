@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/network/api_client.dart';
+import '../../data/cache/cache_service.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/garage_service.dart';
 import '../../data/services/ai_service.dart';
@@ -20,6 +21,7 @@ class ServiceLocator {
 
   // Singleton instances
   late final ApiClient _apiClient;
+  late final CacheService _cacheService;
   late final AuthService _authService;
   late final GarageService _garageService;
   late final AIService _aiService;
@@ -41,14 +43,15 @@ class ServiceLocator {
 
     // Core
     _apiClient = ApiClient();
+    _cacheService = CacheService();
 
     // Services
     _authService = AuthService(_apiClient);
-    _garageService = GarageService(_apiClient);
+    _garageService = GarageService(_apiClient, _cacheService);
     _aiService = AIService(_apiClient);
     _marketService = MarketService(_apiClient);
     _socialService = SocialService(_apiClient);
-    _maintenanceService = MaintenanceService(_apiClient);
+    _maintenanceService = MaintenanceService(_apiClient, _cacheService);
 
     _initialized = true;
     debugPrint('✅ All services initialized successfully');
@@ -58,6 +61,11 @@ class ServiceLocator {
   ApiClient get apiClient {
     _ensureInitialized();
     return _apiClient;
+  }
+
+  CacheService get cacheService {
+    _ensureInitialized();
+    return _cacheService;
   }
 
   AuthService get authService {
