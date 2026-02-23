@@ -284,7 +284,7 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 10),
-        ...items.map((item) => _buildServiceRow(item)).toList(),
+        ...items.map(_buildServiceRow),
       ],
     );
   }
