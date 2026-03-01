@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -28,6 +29,12 @@ func NewVehicleHandler(vehicleService *vehicle.Service) *VehicleHandler {
 // @Failure 400 {object} map[string]string
 // @Router /api/v1/vehicles [post]
 func (h *VehicleHandler) CreateVehicle(c *gin.Context) {
+	userID, ok := auth.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		return
+	}
+
 	var v vehicle.Vehicle
 	if err := c.ShouldBindJSON(&v); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,6 +44,18 @@ func (h *VehicleHandler) CreateVehicle(c *gin.Context) {
 	err := h.vehicleService.CreateVehicle(c.Request.Context(), &v)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Make the current user the owner so the vehicle appears in "my vehicles"
+	vo := &vehicle.VehicleOwner{
+		VehicleID:  v.ID,
+		UserID:     userID.(uuid.UUID),
+		OwnedFrom:  time.Now(),
+		IsCurrent:  true,
+	}
+	if err := h.vehicleService.CreateVehicleOwner(c.Request.Context(), vo); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to assign vehicle owner"})
 		return
 	}
 

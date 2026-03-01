@@ -91,6 +91,10 @@ Your name is "AutoExpert". You are polite, professional, and concise.
 								Type:        genai.TypeString,
 								Description: "Expense date in YYYY-MM-DD format.",
 							},
+							"vehicle_id": {
+								Type:        genai.TypeString,
+								Description: "Optional UUID of the vehicle this expense is for (for service book).",
+							},
 						},
 						Required: []string{"category", "amount", "description", "date"},
 					},

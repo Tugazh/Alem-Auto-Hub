@@ -15,11 +15,15 @@ import (
 	"alem-auto/internal/api"
 	"alem-auto/internal/auth"
 	"alem-auto/internal/catalog"
+	"alem-auto/internal/booking"
 	"alem-auto/internal/database"
+	"alem-auto/internal/fines"
 	"alem-auto/internal/inspection"
 	"alem-auto/internal/knowledge"
 	"alem-auto/internal/media"
+	"alem-auto/internal/servicebook"
 	"alem-auto/internal/vehicle"
+	"alem-auto/internal/warehouse"
 )
 
 func main() {
@@ -61,6 +65,10 @@ func main() {
 	var inspectionService *inspection.Service
 	var mediaService *media.Service
 	var authService *auth.Service
+	var finesService *fines.Service
+	var bookingService *booking.Service
+	var warehouseService *warehouse.Service
+	var servicebookService *servicebook.Service
 
 	if db != nil {
 		catalogRepo := catalog.NewRepository(db)
@@ -77,6 +85,15 @@ func main() {
 
 		authRepo := auth.NewRepository(db)
 		authService = auth.NewService(authRepo, cfg.Auth)
+
+		finesRepo := fines.NewRepository(db)
+		finesService = fines.NewService(finesRepo)
+
+		bookingRepo := booking.NewRepository(db)
+		bookingService = booking.NewService(bookingRepo, vehicleService, inspectionService)
+
+		warehouseRepo := warehouse.NewRepository(db)
+		warehouseService = warehouse.NewService(warehouseRepo)
 	}
 
 	// Agent сервис (работает без БД, но без сохранения)
@@ -116,6 +133,10 @@ func main() {
 
 	agentService := agent.NewChatService(agentRepo, geminiClient, knowledgeService)
 
+	if db != nil {
+		servicebookService = servicebook.NewService(vehicleService, inspectionService, agentRepo)
+	}
+
 	// Настраиваем роутинг
 	router := api.SetupRoutes(
 		authService,
@@ -123,6 +144,10 @@ func main() {
 		vehicleService,
 		inspectionService,
 		mediaService,
+		finesService,
+		bookingService,
+		warehouseService,
+		servicebookService,
 		cfg.Mock.CarsJSONPath,
 		agentService,
 	)

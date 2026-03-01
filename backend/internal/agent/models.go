@@ -46,13 +46,14 @@ type ReceiptData struct {
 
 // ServiceRecord stores car expense entries.
 type ServiceRecord struct {
-	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;index"`
-	Date        string    `json:"date"`
-	Category    Category  `json:"category" gorm:"type:varchar(16)"`
-	Amount      float64   `json:"amount"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	UserID      uuid.UUID  `json:"user_id" gorm:"type:uuid;index"`
+	VehicleID   *uuid.UUID `json:"vehicle_id,omitempty" gorm:"type:uuid;index"`
+	Date        string     `json:"date"`
+	Category    Category   `json:"category" gorm:"type:varchar(16)"`
+	Amount      float64    `json:"amount"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 func (ServiceRecord) TableName() string {
