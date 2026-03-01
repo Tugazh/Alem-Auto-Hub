@@ -33,3 +33,14 @@ func (r *Repository) GetServiceRecordsByUser(ctx context.Context, userID uuid.UU
 	}
 	return records, nil
 }
+
+func (r *Repository) GetServiceRecordsByVehicleID(ctx context.Context, vehicleID uuid.UUID) ([]ServiceRecord, error) {
+	var records []ServiceRecord
+	if err := r.db.WithContext(ctx).
+		Where("vehicle_id = ?", vehicleID).
+		Order("created_at DESC").
+		Find(&records).Error; err != nil {
+		return nil, err
+	}
+	return records, nil
+}

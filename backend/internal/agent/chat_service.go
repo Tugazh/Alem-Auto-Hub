@@ -127,6 +127,13 @@ func (s *ChatService) handleAddServiceRecord(
 		Amount:      amount,
 		Description: description,
 	}
+	if v, ok := args["vehicle_id"]; ok && v != nil {
+		if s, ok := v.(string); ok && s != "" {
+			if vid, err := uuid.Parse(s); err == nil {
+				record.VehicleID = &vid
+			}
+		}
+	}
 
 	if s.repo == nil {
 		return map[string]interface{}{"status": "skipped", "reason": "repository not available"}, nil
