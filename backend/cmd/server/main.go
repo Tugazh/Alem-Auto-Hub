@@ -14,12 +14,13 @@ import (
 	"alem-auto/internal/agent"
 	"alem-auto/internal/api"
 	"alem-auto/internal/auth"
-	"alem-auto/internal/catalog"
 	"alem-auto/internal/booking"
+	"alem-auto/internal/catalog"
 	"alem-auto/internal/database"
 	"alem-auto/internal/fines"
 	"alem-auto/internal/inspection"
 	"alem-auto/internal/knowledge"
+	"alem-auto/internal/market"
 	"alem-auto/internal/media"
 	"alem-auto/internal/servicebook"
 	"alem-auto/internal/vehicle"
@@ -63,6 +64,7 @@ func main() {
 	var catalogService *catalog.Service
 	var vehicleService *vehicle.Service
 	var inspectionService *inspection.Service
+	var marketService *market.Service
 	var mediaService *media.Service
 	var authService *auth.Service
 	var finesService *fines.Service
@@ -79,6 +81,9 @@ func main() {
 
 		inspectionRepo := inspection.NewRepository(db)
 		inspectionService = inspection.NewService(inspectionRepo, vehicleService)
+
+		marketRepo := market.NewRepository(db)
+		marketService = market.NewService(marketRepo)
 
 		mediaRepo := media.NewRepository(db)
 		mediaService = media.NewService(mediaRepo, s3Client, cfg.S3)
@@ -143,6 +148,7 @@ func main() {
 		catalogService,
 		vehicleService,
 		inspectionService,
+		marketService,
 		mediaService,
 		finesService,
 		bookingService,

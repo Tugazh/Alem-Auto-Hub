@@ -8,6 +8,7 @@ import (
 	"alem-auto/internal/catalog"
 	"alem-auto/internal/fines"
 	"alem-auto/internal/inspection"
+	"alem-auto/internal/market"
 	"alem-auto/internal/media"
 	"alem-auto/internal/servicebook"
 	"alem-auto/internal/vehicle"
@@ -21,6 +22,7 @@ func SetupRoutes(
 	catalogService *catalog.Service,
 	vehicleService *vehicle.Service,
 	inspectionService *inspection.Service,
+	marketService *market.Service,
 	mediaService *media.Service,
 	finesService *fines.Service,
 	bookingService *booking.Service,
@@ -104,6 +106,31 @@ func SetupRoutes(
 
 			// Vehicle inspections
 			protected.GET("/vehicles/:id/inspections", inspectionHandler.GetInspectionsByVehicleID)
+
+			// Market routes
+			if marketService != nil {
+				marketHandler := handlers.NewMarketHandler(marketService)
+				marketGroup := protected.Group("/market")
+				{
+					marketGroup.GET("/products", marketHandler.ListProducts)
+					marketGroup.POST("/products", marketHandler.CreateProduct)
+					marketGroup.GET("/products/:id", marketHandler.GetProduct)
+					marketGroup.PUT("/products/:id", marketHandler.UpdateProduct)
+					marketGroup.DELETE("/products/:id", marketHandler.DeleteProduct)
+
+					marketGroup.GET("/services", marketHandler.ListServices)
+					marketGroup.POST("/services", marketHandler.CreateService)
+					marketGroup.GET("/services/:id", marketHandler.GetService)
+					marketGroup.PUT("/services/:id", marketHandler.UpdateService)
+					marketGroup.DELETE("/services/:id", marketHandler.DeleteService)
+
+					marketGroup.GET("/ads", marketHandler.ListAds)
+					marketGroup.POST("/ads", marketHandler.CreateAd)
+					marketGroup.GET("/ads/:id", marketHandler.GetAd)
+					marketGroup.PUT("/ads/:id", marketHandler.UpdateAd)
+					marketGroup.DELETE("/ads/:id", marketHandler.DeleteAd)
+				}
+			}
 
 			// Fines routes (only when DB available)
 			if finesService != nil {
