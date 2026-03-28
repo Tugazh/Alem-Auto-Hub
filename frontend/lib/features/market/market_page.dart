@@ -241,9 +241,9 @@ class _ProductsTabState extends State<ProductsTab> {
                   Text(
                     '${product.price.toStringAsFixed(0)} ₸',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -253,9 +253,9 @@ class _ProductsTabState extends State<ProductsTab> {
                       Text(
                         '${product.viewCount} просмотров',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -287,7 +287,7 @@ class _ProductsTabState extends State<ProductsTab> {
         crossAxisCount: 4,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.75,
+        childAspectRatio: 0.85,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
@@ -433,28 +433,24 @@ class ServicesTab extends StatelessWidget {
 
   Widget _buildCategoryItem(String icon, String label) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 56,
-          height: 56,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Text(icon, style: const TextStyle(fontSize: 28)),
+            child: Text(icon, style: const TextStyle(fontSize: 32)),
           ),
         ),
-        const SizedBox(height: 6),
-        Flexible(
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 11),
+          maxLines: 2,
         ),
       ],
     );
@@ -509,7 +505,7 @@ class ServicesTab extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.8,
+        childAspectRatio: 0.85,
       ),
       itemCount: services.length,
       itemBuilder: (context, index) {
@@ -528,7 +524,7 @@ class ServicesTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 104,
+            height: 120,
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: const BorderRadius.vertical(
@@ -538,49 +534,44 @@ class ServicesTab extends StatelessWidget {
             child: Center(
               child: Text(
                 service['image']!,
-                style: const TextStyle(fontSize: 44),
+                style: const TextStyle(fontSize: 48),
               ),
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    service['name']!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  service['name']!,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  service['address']!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: AppColors.warning, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${service['rating']} ${service['reviews']}',
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    service['address']!,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.star,
-                          color: AppColors.warning, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${service['rating']} ${service['reviews']}',
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

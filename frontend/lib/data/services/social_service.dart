@@ -90,24 +90,6 @@ class SocialService {
     return response.data as Map<String, dynamic>;
   }
 
-  /// Получить комментарии к посту
-  Future<List<CommentModel>> getComments(String postId) async {
-    try {
-      final response = await _apiClient.get('/social/posts/$postId/comments');
-
-      if (response.data is! List) {
-        debugPrint('⚠️ Backend not implemented, returning empty list');
-        return [];
-      }
-
-      final list = List<Map<String, dynamic>>.from(response.data);
-      return list.map((json) => CommentModel.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('⚠️ Failed to load comments: $e, returning empty list');
-      return [];
-    }
-  }
-
   /// Загрузить медиа файл (фото/видео)
   /// Возвращает URL загруженного файла в MinIO
   Future<String> uploadMedia(String filePath) async {
