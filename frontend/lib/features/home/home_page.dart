@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
@@ -36,10 +37,13 @@ class HomePageContent extends StatefulWidget {
   State<HomePageContent> createState() => _HomePageContentState();
 }
 
-class _HomePageContentState extends State<HomePageContent> {
+class _HomePageContentState extends State<HomePageContent>
+    with TickerProviderStateMixin {
   int _selectedCarIndex = 1; // Middle car is selected
   int _selectedMaintenanceTab = 0; // 0: error, 1: warning, 2: success
   late final PageController _carPageController;
+  late final AnimationController _glowController;
+  late final Animation<double> _glowAnimation;
   Timer? _pageChangeDebounce;
   final List<String> _cities = const [
     'Астана',
@@ -75,8 +79,15 @@ class _HomePageContentState extends State<HomePageContent> {
   void initState() {
     super.initState();
     _carPageController = PageController(
-      viewportFraction: 0.75,
+      viewportFraction: 0.65,
       initialPage: _selectedCarIndex,
+    );
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.55, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -88,6 +99,7 @@ class _HomePageContentState extends State<HomePageContent> {
   void dispose() {
     _pageChangeDebounce?.cancel();
     _carPageController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -171,23 +183,38 @@ class _HomePageContentState extends State<HomePageContent> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildQuickActions(),
-                const SizedBox(height: 16),
-                _buildCarCarousel(),
-                const SizedBox(height: 16),
-                _buildMaintenancePlan(),
-                const SizedBox(height: 16),
-                _buildAlemAutoBox(),
-                const SizedBox(height: 80), // Space for bottom nav
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildHeader(),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildQuickActions(),
+              ),
+              const SizedBox(height: 16),
+              _buildCarCarousel(),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildMapCard(),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildMaintenancePlan(),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildAlemAutoBox(),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
@@ -205,9 +232,9 @@ class _HomePageContentState extends State<HomePageContent> {
               Text(
                 'Привет, Nurtugan!',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               const SizedBox(height: 4),
               _buildCitySelector(),
@@ -216,39 +243,46 @@ class _HomePageContentState extends State<HomePageContent> {
         ),
         Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.qr_code_scanner,
-                color: AppColors.textPrimary,
-                size: 24,
-              ),
+            _buildHeaderIconButton(
+              assetPath: 'assets/icons/qr-icon.svg',
+              onTap: () {},
             ),
             const SizedBox(width: 12),
-            GestureDetector(
+            _buildHeaderIconButton(
+              assetPath: 'assets/icons/notifications.svg',
               onTap: _showNotificationsSheet,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.textPrimary,
-                  size: 24,
-                ),
-              ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildHeaderIconButton({
+    required String assetPath,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: SizedBox.square(
+            dimension: 20,
+            child: SvgPicture.asset(
+              assetPath,
+              fit: BoxFit.contain,
+              colorFilter:
+                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -260,7 +294,7 @@ class _HomePageContentState extends State<HomePageContent> {
             Expanded(
               child: _buildActionButton(
                 'Штрафы',
-                Icons.description_outlined,
+                'assets/icons/Vector.svg',
                 () => _openQuickAction('Штрафы'),
               ),
             ),
@@ -268,7 +302,7 @@ class _HomePageContentState extends State<HomePageContent> {
             Expanded(
               child: _buildActionButton(
                 'Расход',
-                Icons.local_gas_station_outlined,
+                'assets/icons/expenses.svg',
                 () => _openQuickAction('Расход'),
               ),
             ),
@@ -279,16 +313,16 @@ class _HomePageContentState extends State<HomePageContent> {
           children: [
             Expanded(
               child: _buildActionButton(
-                'Запись',
-                Icons.calendar_today_outlined,
-                () => _openQuickAction('Запись'),
+                'Обслуживание',
+                'assets/icons/maintenance.svg',
+                () => _openQuickAction('Обслуживание'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildActionButton(
                 'Склад',
-                Icons.inventory_2_outlined,
+                'assets/icons/warehouse.svg',
                 () => _openQuickAction('Склад'),
               ),
             ),
@@ -308,9 +342,9 @@ class _HomePageContentState extends State<HomePageContent> {
           Text(
             '$_selectedCity, Казахстан',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
           ),
           const SizedBox(width: 4),
           const Icon(
@@ -382,8 +416,8 @@ class _HomePageContentState extends State<HomePageContent> {
                   Text(
                     'Уведомления',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -424,19 +458,31 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, VoidCallback onTap) {
+  Widget _buildActionButton(
+    String label,
+    String iconPath,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.textPrimary, size: 20),
+            SizedBox.square(
+              dimension: 20,
+              child: SvgPicture.asset(
+                iconPath,
+                fit: BoxFit.contain,
+                colorFilter:
+                    const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              ),
+            ),
             const SizedBox(width: 12),
             Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ],
@@ -446,7 +492,7 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   void _openQuickAction(String title) {
-    if (title == 'Запись') {
+    if (title == 'Обслуживание') {
       Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (context) => const BookingPage()));
@@ -466,238 +512,322 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   Widget _buildCarCarousel() {
-    // Loading state
     if (_isLoadingCars) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const LoadingState(
-              height: 340,
-              message: 'Загрузка автомобилей...',
-            ),
-          ),
-          const SizedBox(height: 18),
-        ],
+      return const LoadingState(
+        height: 380,
+        message: 'Загрузка автомобиля...',
       );
     }
 
-    // Error state
     if (_errorMessage != null) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ErrorState(
-              height: 340,
-              message: _errorMessage!,
-              onRetry: _loadCars,
-            ),
-          ),
-          const SizedBox(height: 18),
-        ],
+      return ErrorState(
+        height: 380,
+        message: _errorMessage!,
+        onRetry: _loadCars,
       );
     }
 
-    // Empty state
     if (_cars.isEmpty) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const EmptyState(
-              height: 340,
-              icon: Icons.directions_car_outlined,
-              title: 'Нет автомобилей',
-              message: 'Добавьте свой первый автомобиль',
-            ),
-          ),
-          const SizedBox(height: 18),
-        ],
+      return const EmptyState(
+        height: 380,
+        icon: Icons.directions_car_outlined,
+        title: 'Нет автомобилей',
+        message: 'Добавьте свой первый автомобиль',
       );
     }
 
-    // Success state with real data
-    return Column(
-      children: [
-        SizedBox(
-          height: 340,
-          child: Stack(
-            children: [
-              PageView.builder(
-                controller: _carPageController,
-                onPageChanged: (index) {
-                  _pageChangeDebounce?.cancel();
-                  _pageChangeDebounce = Timer(
-                    const Duration(milliseconds: 350),
-                    () {
-                      if (!mounted) return;
-                      if (_selectedCarIndex == index) return;
-                      setState(() {
-                        _selectedCarIndex = index;
-                      });
-                    },
-                  );
-                },
-                itemCount: _cars.length,
-                itemBuilder: (context, index) {
-                  final isSelected = index == _selectedCarIndex;
-                  final isRouteActive =
-                      ModalRoute.of(context)?.isCurrent ?? true;
-                  final car = _cars[index];
+    final safeIndex = _selectedCarIndex.clamp(0, _cars.length - 1);
+    final car = _cars[safeIndex];
 
-                  return Transform.scale(
-                    scale: isSelected ? 1.0 : 0.88,
-                    child: Opacity(
-                      opacity: isSelected ? 1.0 : 0.4,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 10,
-                        ),
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    blurRadius: 20,
-                                    spreadRadius: 0,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    car.name,
-                                    style: Theme.of(context).textTheme.bodyLarge
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+    return Container(
+      height: 380,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          _buildCarCarouselBackground(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 24),
+              Text(
+                '${car.make} ${car.model}',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 26,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 220,
+                child: Stack(
+                  children: [
+                    AnimatedBuilder(
+                      animation: _carPageController,
+                      builder: (context, child) {
+                        final page = _carPageController.hasClients
+                            ? _carPageController.page ??
+                                _selectedCarIndex.toDouble()
+                            : _selectedCarIndex.toDouble();
+
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: List.generate(_cars.length, (index) {
+                            final rawDelta = (index - page);
+                            final delta = rawDelta.clamp(-1.0, 1.0);
+                            final scale = (1.0 - (delta.abs() * 0.35)) * 1.45;
+                            final opacity = 1.0 - (delta.abs() * 0.65);
+                            final rotateY = delta * 0.4;
+                            final translateY = delta.abs() * 20.0;
+
+                            final width = MediaQuery.of(context).size.width;
+                            final translateX = rawDelta * width;
+
+                            return Positioned(
+                              left: translateX,
+                              width: width,
+                              height: 220,
+                              child: Opacity(
+                                opacity: opacity,
+                                child: Transform(
+                                  alignment: Alignment.center,
+                                  transform: Matrix4.identity()
+                                    ..setEntry(3, 2, 0.001)
+                                    ..translate(0.0, translateY, 0.0)
+                                    ..rotateY(rotateY)
+                                    ..scale(scale),
+                                  child: _buildCarFanCard(
+                                      _cars[index], index == safeIndex),
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    if (widget.onCarTap != null) {
-                                      widget.onCarTap!(car);
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.directions_car,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.background.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: isSelected && isRouteActive
-                                    ? Car3DViewer(
-                                        key: ValueKey('home_3d_${car.id}'),
-                                        model3dUrl: car.model3dUrl,
-                                        fallbackImageUrl: car.imageUrl,
-                                        carName: car.name,
-                                        autoActivate: false,
-                                      )
-                                    : Center(
-                                        child: Icon(
-                                          Icons.directions_car,
-                                          size: 80,
-                                          color: AppColors.iconGray.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                        ),
-                                      ),
                               ),
+                            );
+                          }),
+                        );
+                      },
+                    ),
+                    PageView.builder(
+                      controller: _carPageController,
+                      itemCount: _cars.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _selectedCarIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          if (widget.onCarTap != null) {
+                            widget.onCarTap!(_cars[index]);
+                          }
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _statPill(
+                    car.mileage != null ? '${car.mileage} км' : '—',
+                  ),
+                  const SizedBox(width: 12),
+                  _statPill(car.plateNumber ?? '—'),
+                ],
+              ),
+              const Spacer(),
+              if (_cars.length > 1) _buildCarouselDots(),
+              const SizedBox(height: 18),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarCarouselBackground() {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (_, __) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Opacity(
+              opacity: 0.7 + (_glowAnimation.value * 0.3),
+              child: Image.asset(
+                'assets/images/ellipse.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCarouselDots() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(
+        _cars.length,
+        (index) {
+          final isActive = index == _selectedCarIndex;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            height: 4,
+            width: isActive ? 40 : 28,
+            decoration: BoxDecoration(
+              color: isActive ? const Color(0xFFDA562C) : Colors.white,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCarFanCard(CarModel car, bool isActive) {
+    return IgnorePointer(
+      child: Transform.scale(
+        scaleX: -1, // Отзеркаливаем, чтобы машина смотрела влево
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Car3DViewer(
+            key: ValueKey('home_3d_fan_${car.id}'),
+            model3dUrl: car.model3dUrl,
+            fallbackImageUrl: car.imageUrl,
+            carName: car.name,
+            cameraOrbit: '-45deg 75deg 105%',
+            cameraControls: false,
+            autoActivate: true,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statPill(String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF181818).withOpacity(0.9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        value,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildMapCard() {
+    Widget mapButton({required String iconPath, bool filled = false}) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color:
+              filled ? AppColors.primary : Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: SvgPicture.asset(
+            iconPath,
+            width: 20,
+            height: 20,
+            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Container(
+        height: 180,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'assets/images/map.png',
+                fit: BoxFit.cover,
+              ),
+              Positioned(
+                left: 16,
+                bottom: 16,
+                right: 16,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          child: Container(
+                            height: 44,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            const SizedBox(height: 14),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Row(
                               children: [
-                                if (car.mileage != null)
-                                  Text(
-                                    '${car.mileage} км',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                SvgPicture.asset(
+                                  'assets/icons/search-loupe.svg',
+                                  width: 18,
+                                  height: 18,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
                                   ),
-                                if (car.mileage == null) const SizedBox(),
+                                ),
+                                const SizedBox(width: 10),
                                 Text(
-                                  car.plateNumber ?? '',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w500),
+                                  'Поиск',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(color: Colors.white),
                                 ),
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(width: 10),
+                    mapButton(
+                      iconPath: 'assets/icons/full-screen.svg',
+                      filled: true,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 18),
-        // Красная кнопка с точками на всю ширину
-        Container(
-          width: double.infinity,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              _cars.length,
-              (index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 3.5),
-                width: _selectedCarIndex == index ? 24 : 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: _selectedCarIndex == index
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(3.5),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -710,9 +840,9 @@ class _HomePageContentState extends State<HomePageContent> {
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 16),
           const LoadingState(height: 150, message: 'Загрузка плана...'),
@@ -728,9 +858,9 @@ class _HomePageContentState extends State<HomePageContent> {
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 16),
           ErrorState(
@@ -749,9 +879,9 @@ class _HomePageContentState extends State<HomePageContent> {
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 16),
           const EmptyState(
@@ -784,9 +914,9 @@ class _HomePageContentState extends State<HomePageContent> {
         Text(
           'План обслуживания',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
         ),
         const SizedBox(height: 16),
         // Табы с иконками
@@ -849,8 +979,8 @@ class _HomePageContentState extends State<HomePageContent> {
               child: Text(
                 'Нет записей',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                      color: AppColors.textSecondary,
+                    ),
               ),
             ),
           ),
@@ -881,13 +1011,17 @@ class _HomePageContentState extends State<HomePageContent> {
                             children: [
                               Text(
                                 _getMaintenanceTypeLabel(item.type),
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 _formatMaintenanceDate(item),
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(
                                       color: AppColors.textSecondary,
                                       fontSize: 12,
@@ -991,12 +1125,16 @@ class _HomePageContentState extends State<HomePageContent> {
                       children: [
                         Text(
                           'ALEM AUTO BOX',
-                          style: Theme.of(context).textTheme.bodyLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Полная диагностика авто',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
@@ -1015,15 +1153,15 @@ class _HomePageContentState extends State<HomePageContent> {
                   Text(
                     'Цена: от 15 000 ₸',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   const Spacer(),
                   Text(
                     'Время: ~2 часа',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                          color: AppColors.textSecondary,
+                        ),
                   ),
                 ],
               ),

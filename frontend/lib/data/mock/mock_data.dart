@@ -2,6 +2,17 @@ import '../models/car_model.dart';
 import '../models/maintenance_model.dart';
 import '../models/market_product_model.dart';
 import '../models/social_post_model.dart';
+import '../models/chat_models.dart';
+import '../models/community_model.dart';
+import '../models/faq_model.dart';
+import '../models/expense_model.dart';
+import '../models/order_model.dart';
+import '../models/fine_model.dart';
+import '../models/review_model.dart';
+import '../models/booking_model.dart';
+import '../models/cart_item_model.dart';
+import '../models/settings_models.dart';
+import '../models/search_models.dart';
 
 /// Mock data for testing and development
 class MockData {
@@ -348,4 +359,62 @@ class MockData {
       ),
     },
   ];
+
+  // Mock Bookings
+  static final List<BookingModel> mockBookings = [];
+
+  // Mock Cart Items
+  static final List<CartItemModel> mockCartItems = [];
+
+  // Mock Chat Threads
+  static final List<ChatThreadModel> mockChatThreads = [];
+
+  // Mock Chat Messages by Thread
+  static final Map<String, List<ChatMessageModel>> mockChatMessagesByThread =
+      {};
+
+  // Mock Communities
+  static final List<CommunityModel> mockCommunities = [];
+
+  // Mock Community Members
+  static final Map<String, List<CommunityMember>> mockCommunityMembers = {};
+
+  // Mock FAQ Items
+  static final List<FAQItemModel> mockFaqItems = [];
+
+  // Mock Expenses
+  static final List<ExpenseModel> mockExpenses = [];
+
+  // Mock Categories
+  static final List<String> mockCategories = [];
+
+  // Mock Orders
+  static final List<OrderModel> mockOrders = [];
+
+  // Mock Fines
+  static final List<FineModel> mockFines = [];
+
+  // Mock Reviews
+  static final List<ReviewModel> mockReviews = [];
+
+  // Mock Search Result
+  static const mockSearchResult = SearchResultModel(
+    query: '',
+    people: [],
+    communities: [],
+    posts: [],
+  );
+
+  // Mock Settings
+  static var mockSettings = const SettingsModel(
+    city: 'Алматы',
+    language: 'ru',
+    notifications: NotificationSettingsModel(
+      push: true,
+      service: true,
+      promo: false,
+      email: true,
+    ),
+    security: SecuritySettingsModel(twoFactorEnabled: false),
+  );
 }

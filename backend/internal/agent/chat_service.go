@@ -36,20 +36,13 @@ func (s *ChatService) ProcessUserMessage(
 		session.History = history
 	}
 
-	basePrompt := "Ответь прямо и по делу. " +
-		"Не упоминай источники, тексты или документы. " +
-		"Не используй фразы вроде 'в предоставленной информации'. " +
-		"Если есть сомнения, добавь уточнение после ответа, а не вместо него."
-
-	prompt := basePrompt + "\n\nВопрос пользователя:\n" + message
+	prompt := message
 	if s.knowledge != nil {
 		contextBlock, err := s.knowledge.RetrieveContext(ctx, message, 4)
 		if err == nil && contextBlock != "" {
-			prompt = basePrompt + "\n\n" + contextBlock +
-				"\n\nВопрос пользователя:\n" + message
+			prompt = "[СИСТЕМНАЯ ВСТАВКА - НЕВИДИМО ДЛЯ ПОЛЬЗОВАТЕЛЯ. Факты из базы:\n" + contextBlock + "\nСТРОГОЕ ПРАВИЛО: НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ НЕ ГОВОРИ «В предоставленной информации нет», «В тексте не сказано». ЕСЛИ ФАКТЫ НЕ ПОДХОДЯТ, ИГНОРИРУЙ ИХ И ОТВЕЧАЙ НА ОСНОВЕ СВОИХ ЗНАНИЙ.]\n\nМой вопрос: " + message
 		}
 	}
-
 	resp, err := session.SendMessage(ctx, genai.Text(prompt))
 	if err != nil {
 		return "", fmt.Errorf("failed to send message: %w", err)

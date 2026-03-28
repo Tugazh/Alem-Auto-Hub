@@ -1,0 +1,29 @@
+#!/bin/bash
+# Codesign wrapper that cleans metadata before signing
+
+# Store original codesign path
+ORIGINAL_CODESIGN="/usr/bin/codesign"
+
+# Clean metadata from all file arguments
+for arg in "$@"; do
+    # Skip flags (arguments starting with -)
+    if [[ "$arg" != -* ]] && [[ -e "$arg" ]]; then
+        # Strip extended attributes
+        xattr -c "$arg" 2>/dev/null || true
+        
+        # Clean resource forks if directory
+        if [[ -d "$arg" ]]; then
+            dot_clean -m "$arg" 2>/dev/null || true
+            find "$arg" -type f -exec xattr -c {} \; 2>/dev/null || true
+        fi
+        
+        # For binary files, also remove com.apple.FinderInfo
+        if [[ -f "$arg" ]]; then
+            xattr -d com.apple.FinderInfo "$arg" 2>/dev/null || true
+            xattr -d com.apple.ResourceFork "$arg" 2>/dev/null || true
+        fi
+    fi
+done
+
+# Execute original codesign
+exec "$ORIGINAL_CODESIGN" "$@"

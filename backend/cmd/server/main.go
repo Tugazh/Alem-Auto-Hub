@@ -14,16 +14,21 @@ import (
 	"alem-auto/internal/agent"
 	"alem-auto/internal/api"
 	"alem-auto/internal/auth"
-	"alem-auto/internal/catalog"
 	"alem-auto/internal/booking"
+	"alem-auto/internal/catalog"
 	"alem-auto/internal/database"
 	"alem-auto/internal/fines"
 	"alem-auto/internal/inspection"
 	"alem-auto/internal/knowledge"
+	"alem-auto/internal/logger"
 	"alem-auto/internal/media"
+	"alem-auto/internal/metrics"
 	"alem-auto/internal/servicebook"
 	"alem-auto/internal/vehicle"
 	"alem-auto/internal/warehouse"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -33,10 +38,18 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// Инициализируем structured logger
+	env := "production"
+	if cfg.Server.Host == "localhost" || cfg.Server.Host == "0.0.0.0" {
+		env = "development"
+	}
+	appLogger := logger.InitLogger(env)
+	appLogger.Info("Starting Alem Auto application", "env", env)
+
 	// Подключаемся к БД (опционально для основных сервисов)
 	db, err := database.New(cfg.Database)
 	if err != nil {
-		log.Printf("Warning: Failed to connect to database: %v (some features will be unavailable)", err)
+		appLogger.Warn("Failed to connect to database", "error", err, "note", "some features will be unavailable")
 		db = nil
 	}
 	if db != nil {
@@ -137,7 +150,7 @@ func main() {
 		servicebookService = servicebook.NewService(vehicleService, inspectionService, agentRepo)
 	}
 
-	// Настраиваем роутинг
+	// Настраиваем роутинг с middleware
 	router := api.SetupRoutes(
 		authService,
 		catalogService,
@@ -151,6 +164,17 @@ func main() {
 		cfg.Mock.CarsJSONPath,
 		agentService,
 	)
+
+	// Добавляем structured logging middleware
+	router.Use(logger.StructuredLogger(appLogger))
+
+	// Добавляем Prometheus metrics middleware
+	router.Use(metrics.MetricsMiddleware())
+
+	// Добавляем /metrics endpoint для Prometheus
+	router.GET("/metrics", func(c *gin.Context) {
+		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+	})
 
 	// Настраиваем HTTP сервер
 	srv := &http.Server{

@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:o3d/o3d.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class _O3DGate {
   static int _active = 0;
-  static const int _max = 1;
+  static const int _max = 20;
   static final List<Completer<void>> _queue = [];
 
   static Future<void> acquire() async {
@@ -57,53 +61,95 @@ class Car3DViewer extends StatefulWidget {
   State<Car3DViewer> createState() => _Car3DViewerState();
 }
 
+class _RawCameraOrbit implements CameraOrbit {
+  final String raw;
+  _RawCameraOrbit(this.raw);
+
+  @override
+  double get theta => 0;
+  @override
+  set theta(double v) {}
+
+  @override
+  double get phi => 0;
+  @override
+  set phi(double v) {}
+
+  @override
+  double get radius => 0;
+  @override
+  set radius(double v) {}
+
+  @override
+  String toString() => raw;
+}
+
 class _Car3DViewerState extends State<Car3DViewer> {
   O3DController? _controller;
   bool _isReady = false;
   bool _checkingAsset = true;
   bool _assetAvailable = true;
   Timer? _initDebounce;
-  bool _isActive = false;
+  bool _hasError = false;
+  String? _localPath; // cached local file or asset path
+  bool _isCaching = false;
 
   @override
   void initState() {
     super.initState();
-    _isActive = widget.autoActivate;
-    if (_isActive) {
-      _checkAssetAvailability();
-      _initDebounce = Timer(const Duration(milliseconds: 150), _initViewer);
+    if (widget.autoActivate) {
+      _prepareModel();
     } else {
       _checkingAsset = false;
-      _assetAvailable = false;
+      _isCaching = false;
+      _isReady = false;
     }
   }
 
-  void _activate3d() {
-    if (_isActive) return;
-    setState(() {
-      _isActive = true;
-      _checkingAsset = true;
-    });
-    _checkAssetAvailability();
-    _initDebounce = Timer(const Duration(milliseconds: 150), _initViewer);
+  @override
+  void didUpdateWidget(Car3DViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autoActivate &&
+        !oldWidget.autoActivate &&
+        !_isReady &&
+        !_isCaching) {
+      setState(() {
+        _checkingAsset = true;
+      });
+      _prepareModel();
+    } else if (!widget.autoActivate && oldWidget.autoActivate) {
+      // Release 3D engine aggressively to save memory when not active
+      _initDebounce?.cancel();
+      if (_isReady) {
+        _O3DGate.release();
+      }
+      setState(() {
+        _controller = null;
+        _isReady = false;
+        _checkingAsset = false;
+        _isCaching = false;
+      });
+    }
   }
 
-  Future<void> _checkAssetAvailability() async {
+  Future<void> _prepareModel() async {
     final source = widget.model3dUrl;
     if (source == null || source.isEmpty) {
-      if (!mounted) return;
       setState(() {
         _assetAvailable = false;
         _checkingAsset = false;
+        _hasError = true;
       });
       return;
     }
 
+    // Asset bundled with app
     if (source.startsWith('assets/')) {
       try {
         await rootBundle.load(source);
         if (!mounted) return;
         setState(() {
+          _localPath = source;
           _assetAvailable = true;
           _checkingAsset = false;
         });
@@ -112,16 +158,65 @@ class _Car3DViewerState extends State<Car3DViewer> {
         setState(() {
           _assetAvailable = false;
           _checkingAsset = false;
+          _hasError = true;
         });
       }
+      _initDebounce = Timer(const Duration(milliseconds: 80), _initViewer);
       return;
     }
 
-    if (!mounted) return;
+    // Remote URL: cache to disk for faster next launches
     setState(() {
-      _assetAvailable = true;
-      _checkingAsset = false;
+      _isCaching = true;
+      _checkingAsset = true;
+      _hasError = false;
     });
+
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final cacheDir = Directory('${dir.path}/o3d_cache');
+      if (!await cacheDir.exists()) {
+        await cacheDir.create(recursive: true);
+      }
+
+      final safeName = base64UrlEncode(utf8.encode(source)).replaceAll('=', '');
+      final filePath = '${cacheDir.path}/$safeName.glb';
+      final file = File(filePath);
+
+      if (!await file.exists()) {
+        HttpClient? client;
+        try {
+          client = HttpClient();
+          final uri = Uri.parse(source);
+          final request = await client.getUrl(uri);
+          final response = await request.close();
+          if (response.statusCode != 200) {
+            throw Exception('HTTP ${response.statusCode}');
+          }
+          final bytes = await consolidateHttpClientResponseBytes(response);
+          await file.writeAsBytes(bytes, flush: true);
+        } finally {
+          client?.close(force: true);
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _localPath = file.path;
+        _assetAvailable = true;
+        _checkingAsset = false;
+        _isCaching = false;
+      });
+      _initDebounce = Timer(const Duration(milliseconds: 80), _initViewer);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _assetAvailable = false;
+        _checkingAsset = false;
+        _isCaching = false;
+        _hasError = true;
+      });
+    }
   }
 
   Future<void> _initViewer() async {
@@ -146,118 +241,67 @@ class _Car3DViewerState extends State<Car3DViewer> {
     super.dispose();
   }
 
+  CameraOrbit? _parseCameraOrbit(String? orbit) {
+    if (orbit == null || orbit.isEmpty) return null;
+    return _RawCameraOrbit(orbit);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (widget.model3dUrl == null || widget.model3dUrl!.isEmpty) {
-      return _buildFallback();
+    if (_hasError || !_assetAvailable || widget.model3dUrl == null) {
+      return _errorBox('3D модель недоступна');
     }
 
-    if (!_isActive) {
-      return _buildInactive();
+    // Если автозапуск выключен (например авто сбоку в карусели) — не грузим и не рисуем саму о3д модель пока не станет активной
+    if (!widget.autoActivate) {
+      return const SizedBox.shrink();
     }
 
-    if (_checkingAsset) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 12),
-            Text(
-              'Проверка 3D модели...',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-          ],
-        ),
-      );
+    if (_checkingAsset ||
+        _isCaching ||
+        !_isReady ||
+        _controller == null ||
+        _localPath == null) {
+      return const Center(child: CircularProgressIndicator());
     }
 
-    if (!_assetAvailable) {
-      return _buildFallback();
-    }
-
-    if (!_isReady || _controller == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              'Загрузка 3D модели...',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-            ),
-          ],
-        ),
-      );
-    }
-
+    final src = _localPath!;
+    final resolvedSrc =
+        src.startsWith('assets/') ? src : Uri.file(src).toString();
     return RepaintBoundary(
       child: O3D.asset(
-        key: ValueKey(widget.model3dUrl),
-        src: widget.model3dUrl!,
+        key: ValueKey(resolvedSrc),
+        src: resolvedSrc,
         controller: _controller!,
         ar: false,
         autoPlay: false,
         autoRotate: false,
+        cameraOrbit: _parseCameraOrbit(widget.cameraOrbit),
         cameraControls: widget.cameraControls,
       ),
     );
   }
 
-  Widget _buildFallback() {
-    if (widget.fallbackImageUrl != null) {
-      return Image.network(
-        widget.fallbackImageUrl!,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _buildIcon(),
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                  : null,
+  Widget _errorBox(String title) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
-          );
-        },
-      );
-    }
-    return _buildIcon();
-  }
-
-  Widget _buildInactive() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(child: _buildFallback()),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(20),
           ),
-          child: TextButton(
-            onPressed: _activate3d,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text('Показать 3D'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIcon() {
-    return Icon(
-      Icons.directions_car,
-      size: 100,
-      color: AppColors.iconGray.withValues(alpha: 0.15),
+        ],
+      ),
     );
   }
 }
