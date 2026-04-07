@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/fine_model.dart';
 
-/// Fines Service для работы с /api/v1/fines
+/// Сервис штрафов для работы с /api/v1/fines.
 ///
-/// Backend endpoints:
+/// Эндпоинты бекенда:
 /// - POST /fines - Создать штраф
 /// - GET /fines - Список штрафов (с фильтрами)
 /// - GET /fines/:id - Получить штраф
@@ -15,7 +15,7 @@ class FinesService {
 
   FinesService(this._apiClient);
 
-  /// Получить список штрафов
+  /// Получить список штрафов.
   Future<List<FineModel>> getFines({String? vehicleId, String? status}) async {
     try {
       final response = await _apiClient.get(
@@ -27,30 +27,30 @@ class FinesService {
       );
 
       if (response.data is! List) {
-        debugPrint('⚠️ Fines API: unexpected response format');
+        debugPrint('Fines API: неожиданный формат ответа');
         return [];
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => FineModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load fines: $e');
+      debugPrint('Не удалось загрузить штрафы: $e');
       return [];
     }
   }
 
-  /// Получить штраф по ID
+  /// Получить штраф по ID.
   Future<FineModel?> getFine(String id) async {
     try {
       final response = await _apiClient.get('/fines/$id');
       return FineModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to load fine: $e');
+      debugPrint('Не удалось загрузить штраф: $e');
       return null;
     }
   }
 
-  /// Создать новый штраф
+  /// Создать новый штраф.
   Future<FineModel?> createFine({
     String? vehicleId,
     required double amount,
@@ -68,18 +68,20 @@ class FinesService {
           'currency': currency,
           if (article != null) 'article': article,
           'description': description,
-          'issued_at': issuedAt.toIso8601String().split('T')[0], // YYYY-MM-DD
+          'issued_at': issuedAt.toIso8601String().split(
+            'T',
+          )[0], // формат YYYY-MM-DD
         },
       );
 
       return FineModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to create fine: $e');
+      debugPrint('Не удалось создать штраф: $e');
       return null;
     }
   }
 
-  /// Обновить штраф (отметить как оплаченный)
+  /// Обновить штраф (отметить как оплаченный).
   Future<FineModel?> updateFine({
     required String id,
     String? status,
@@ -96,12 +98,12 @@ class FinesService {
 
       return FineModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to update fine: $e');
+      debugPrint('Не удалось обновить штраф: $e');
       return null;
     }
   }
 
-  /// Оплатить штраф
+  /// Оплатить штраф.
   Future<bool> payFine(String id) async {
     final result = await updateFine(
       id: id,
@@ -111,13 +113,13 @@ class FinesService {
     return result != null;
   }
 
-  /// Удалить штраф
+  /// Удалить штраф.
   Future<bool> deleteFine(String id) async {
     try {
       await _apiClient.delete('/fines/$id');
       return true;
     } catch (e) {
-      debugPrint('❌ Failed to delete fine: $e');
+      debugPrint('Не удалось удалить штраф: $e');
       return false;
     }
   }

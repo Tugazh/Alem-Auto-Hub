@@ -4,9 +4,9 @@ import '../models/maintenance_model.dart';
 import '../cache/cache_service.dart';
 import '../mock/mock_data.dart';
 
-/// Maintenance Service для работы с /api/v1/maintenance endpoints
+/// Сервис обслуживания для работы с /api/v1/maintenance.
 ///
-/// Endpoints:
+/// Эндпоинты:
 /// - GET /maintenance - Список записей обслуживания
 /// - POST /maintenance - Создать запись
 /// - GET /maintenance/:id - Получить запись
@@ -19,10 +19,10 @@ class MaintenanceService {
 
   MaintenanceService(this._apiClient, this._cacheService);
 
-  /// Получить список обслуживаний для гаража
+  /// Получить список обслуживаний для гаража.
   Future<List<MaintenanceModel>> getMaintenanceList({
     required String garageId,
-    String? status, // 'pending', 'completed', 'overdue'
+    String? status, // варианты: 'pending', 'completed', 'overdue'
   }) async {
     try {
       final response = await _apiClient.get(
@@ -34,7 +34,7 @@ class MaintenanceService {
       );
 
       if (response.data is! List) {
-        debugPrint('⚠️ Backend not implemented, using mock data');
+        debugPrint('WARNING: Backend not implemented, using mock data');
         return MockData.mockMaintenanceRecords;
       }
 
@@ -45,21 +45,21 @@ class MaintenanceService {
       await _cacheService.saveMaintenance(garageId, items);
       return items;
     } catch (e) {
-      debugPrint('⚠️ Failed to load from backend: $e, using mock data');
+      debugPrint('WARNING: Failed to load from backend: $e, using mock data');
       return MockData.mockMaintenanceRecords;
     }
   }
 
-  /// Получить конкретную запись обслуживания
+  /// Получить конкретную запись обслуживания.
   Future<MaintenanceModel> getMaintenance(String id) async {
     final response = await _apiClient.get('/maintenance/$id');
     return MaintenanceModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Создать новую запись обслуживания
+  /// Создать новую запись обслуживания.
   Future<MaintenanceModel> createMaintenance({
     required String garageId,
-    required String type, // 'oil_change', 'tire_rotation', etc.
+    required String type, // варианты: 'oil_change', 'tire_rotation' и т. д.
     required DateTime scheduledDate,
     String? notes,
     double? cost,
@@ -78,7 +78,7 @@ class MaintenanceService {
     return MaintenanceModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Обновить запись обслуживания
+  /// Обновить запись обслуживания.
   Future<MaintenanceModel> updateMaintenance(
     String id, {
     DateTime? completedDate,
@@ -100,12 +100,12 @@ class MaintenanceService {
     return MaintenanceModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Удалить запись обслуживания
+  /// Удалить запись обслуживания.
   Future<void> deleteMaintenance(String id) async {
     await _apiClient.delete('/maintenance/$id');
   }
 
-  /// Получить расписание обслуживания
+  /// Получить расписание обслуживания.
   Future<Map<String, dynamic>> getSchedule({required String garageId}) async {
     final response = await _apiClient.get(
       '/maintenance/schedule',

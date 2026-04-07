@@ -7,39 +7,59 @@ class BookingRemoteDataSource {
 
   BookingRemoteDataSource(this.bookingService);
 
-  Future<List<BookingModel>> getBookings() async {
-    return await bookingService.getBookings();
+  /// Получить список бронирований
+  Future<List<BookingModel>> getBookings({
+    String? serviceCenterId,
+    String? vehicleId,
+    String? status,
+  }) async {
+    return await bookingService.getBookings(
+      serviceCenterId: serviceCenterId,
+      vehicleId: vehicleId,
+      status: status,
+    );
   }
 
-  Future<BookingModel> createBooking({
-    required String serviceName,
-    required String address,
-    required DateTime date,
-    required String timeSlot,
-    required double price,
+  /// Создать новое бронирование
+  Future<BookingModel?> createBooking({
+    required String serviceCenterId,
+    required String vehicleId,
+    required DateTime scheduledAt,
+    String? notes,
   }) async {
     return await bookingService.createBooking(
-      serviceName: serviceName,
-      address: address,
-      date: date,
-      timeSlot: timeSlot,
-      price: price,
+      serviceCenterId: serviceCenterId,
+      vehicleId: vehicleId,
+      scheduledAt: scheduledAt,
+      notes: notes,
     );
   }
 
-  Future<BookingModel> updateBooking({
+  /// Получить конкретное бронирование
+  Future<BookingModel?> getBooking(String id) async {
+    return await bookingService.getBooking(id);
+  }
+
+  /// Обновить бронирование (статус или заметки)
+  Future<BookingModel?> updateBooking({
     required String id,
-    required DateTime date,
-    required String timeSlot,
+    String? status,
+    String? notes,
   }) async {
-    return await bookingService.rescheduleBooking(
+    return await bookingService.updateBooking(
       id: id,
-      date: date,
-      timeSlot: timeSlot,
+      status: status,
+      notes: notes,
     );
   }
 
-  Future<void> cancelBooking(String id) async {
-    await bookingService.cancelBooking(id);
+  /// Отменить бронирование (установить status = 'cancelled')
+  Future<bool> cancelBooking(String id) async {
+    return await bookingService.cancelBooking(id);
+  }
+
+  /// Удалить бронирование
+  Future<void> deleteBooking(String id) async {
+    await bookingService.deleteBooking(id);
   }
 }

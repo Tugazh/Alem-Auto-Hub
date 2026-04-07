@@ -29,12 +29,12 @@ class _BookingConfirmPageState extends State<BookingConfirmPage> {
     setState(() => _isSubmitting = true);
     try {
       final BookingService bookingService = ServiceLocator().bookingService;
+      // TODO: Обновить под новую структуру API (serviceCenterId, vehicleId, scheduledAt).
       await bookingService.createBooking(
-        serviceName: widget.serviceName,
-        address: widget.address,
-        date: widget.date,
-        timeSlot: widget.timeSlot,
-        price: 18000,
+        serviceCenterId: 'temp-service-center-id',
+        vehicleId: 'temp-vehicle-id',
+        scheduledAt: widget.date,
+        notes: '${widget.serviceName} at ${widget.address}, ${widget.timeSlot}',
       );
       if (!mounted) return;
       Navigator.of(context).pushReplacement(

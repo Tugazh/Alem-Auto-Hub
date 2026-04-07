@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/order_model.dart';
 import '../models/cart_item_model.dart';
-import '../mock/mock_data.dart';
 
 class OrderService {
   final ApiClient _apiClient;
@@ -13,22 +12,22 @@ class OrderService {
     try {
       final response = await _apiClient.get('/orders');
       if (response.data is! List) {
-        return MockData.mockOrders;
+        return [];
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map(OrderModel.fromJson).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load orders: $e');
-      return MockData.mockOrders;
+      debugPrint('Не удалось загрузить заказы: $e');
+      return [];
     }
   }
 
-  Future<OrderModel> getOrder(String id) async {
+  Future<OrderModel?> getOrder(String id) async {
     try {
       final response = await _apiClient.get('/orders/$id');
       return OrderModel.fromJson(response.data as Map<String, dynamic>);
     } catch (_) {
-      return MockData.mockOrders.firstWhere((order) => order.id == id);
+      return null;
     }
   }
 

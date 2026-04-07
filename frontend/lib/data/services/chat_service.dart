@@ -12,13 +12,13 @@ class ChatService {
     try {
       final response = await _apiClient.get('/chats');
       if (response.data is! List) {
-        return MockData.mockChatThreads;
+        return MockData.mockChatThreads.cast<ChatThreadModel>();
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => ChatThreadModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load chats: $e, using mock data');
-      return MockData.mockChatThreads;
+      debugPrint('Не удалось загрузить чаты: $e. Используем mock-данные');
+      return MockData.mockChatThreads.cast<ChatThreadModel>();
     }
   }
 
@@ -26,13 +26,15 @@ class ChatService {
     try {
       final response = await _apiClient.get('/chats/$chatId/messages');
       if (response.data is! List) {
-        return MockData.mockChatMessagesByThread[chatId] ?? [];
+        return (MockData.mockChatMessagesByThread[chatId] ?? [])
+            .cast<ChatMessageModel>();
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => ChatMessageModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load messages: $e, using mock data');
-      return MockData.mockChatMessagesByThread[chatId] ?? [];
+      debugPrint('Не удалось загрузить сообщения: $e. Используем mock-данные');
+      return (MockData.mockChatMessagesByThread[chatId] ?? [])
+          .cast<ChatMessageModel>();
     }
   }
 
@@ -47,7 +49,7 @@ class ChatService {
       );
       return ChatMessageModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('⚠️ Failed to send message: $e, using mock data');
+      debugPrint('Не удалось отправить сообщение: $e. Используем mock-данные');
       final created = ChatMessageModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         chatId: chatId,

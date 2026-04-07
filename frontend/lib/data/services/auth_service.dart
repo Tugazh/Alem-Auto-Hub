@@ -1,8 +1,8 @@
 import '../../core/network/api_client.dart';
 
-/// Auth Service для работы с /api/v1/auth endpoints
+/// Сервис авторизации для работы с /api/v1/auth.
 ///
-/// Endpoints:
+/// Эндпоинты:
 /// - POST /auth/register - Регистрация
 /// - POST /auth/login - Вход
 /// - POST /auth/refresh - Обновление токена
@@ -13,7 +13,7 @@ class AuthService {
 
   AuthService(this._apiClient);
 
-  /// Регистрация нового пользователя
+  /// Регистрация нового пользователя.
   Future<Map<String, dynamic>> register({
     required String email,
     required String password,
@@ -33,7 +33,7 @@ class AuthService {
     return response.data as Map<String, dynamic>;
   }
 
-  /// Вход пользователя
+  /// Вход пользователя.
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -43,33 +43,33 @@ class AuthService {
       data: {'email': email, 'password': password},
     );
 
-    // TODO: Сохранить JWT token в SecureStorage
+    // TODO: Сохранить JWT-токен в SecureStorage.
     // final token = response.data['token'];
     // await SecureStorage.saveToken(token);
 
     return response.data as Map<String, dynamic>;
   }
 
-  /// Обновление токена
+  /// Обновление токена.
   Future<Map<String, dynamic>> refreshToken() async {
     final response = await _apiClient.post('/auth/refresh');
 
-    // TODO: Обновить JWT token в SecureStorage
+    // TODO: Обновить JWT-токен в SecureStorage.
     // final token = response.data['token'];
     // await SecureStorage.saveToken(token);
 
     return response.data as Map<String, dynamic>;
   }
 
-  /// Выход пользователя
+  /// Выход пользователя.
   Future<void> logout() async {
     await _apiClient.post('/auth/logout');
 
-    // TODO: Удалить JWT token из SecureStorage
+    // TODO: Удалить JWT-токен из SecureStorage.
     // await SecureStorage.deleteToken();
   }
 
-  /// Проверка токена
+  /// Проверка токена.
   Future<bool> verifyToken() async {
     try {
       final response = await _apiClient.get('/auth/verify');

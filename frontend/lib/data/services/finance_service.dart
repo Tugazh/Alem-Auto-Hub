@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/expense_model.dart';
-import '../mock/mock_data.dart';
 
 class FinanceService {
   final ApiClient _apiClient;
@@ -12,13 +11,13 @@ class FinanceService {
     try {
       final response = await _apiClient.get('/finance/expenses');
       if (response.data is! List) {
-        return MockData.mockExpenses;
+        return [];
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map(ExpenseModel.fromJson).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load expenses: $e');
-      return MockData.mockExpenses;
+      debugPrint('Не удалось загрузить расходы: $e');
+      return [];
     }
   }
 
@@ -57,11 +56,11 @@ class FinanceService {
     try {
       final response = await _apiClient.get('/finance/categories');
       if (response.data is! List) {
-        return MockData.mockCategories;
+        return [];
       }
       return List<String>.from(response.data);
     } catch (_) {
-      return MockData.mockCategories;
+      return [];
     }
   }
 

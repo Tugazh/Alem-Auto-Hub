@@ -3,9 +3,9 @@ import '../models/maintenance_model.dart';
 import '../models/market_product_model.dart';
 import '../models/social_post_model.dart';
 
-/// Mock data for testing and development
+/// Mock-данные для тестирования и разработки.
 class MockData {
-  // Mock Users
+  // Пользователи (mock).
   static final mockUsers = [
     const UserInfo(
       id: 'user-001',
@@ -27,7 +27,7 @@ class MockData {
     ),
   ];
 
-  // Mock Vehicles
+  // Автомобили (mock).
   static final mockVehicles = [
     CarModel(
       id: 'vehicle-001',
@@ -94,7 +94,7 @@ class MockData {
     ),
   ];
 
-  // Mock Maintenance Records
+  // Записи обслуживания (mock).
   static final mockMaintenanceRecords = [
     MaintenanceModel(
       id: 'maint-001',
@@ -146,7 +146,7 @@ class MockData {
     ),
   ];
 
-  // Mock Market Products
+  // Товары маркетплейса (mock).
   static final mockMarketProducts = [
     const MarketProductModel(
       id: 'product-001',
@@ -155,7 +155,9 @@ class MockData {
           'Premium quality ceramic brake pads for BMW X5 2020-2023. OEM equivalent performance with reduced dust and noise.',
       price: 249.99,
       category: 'parts',
-      sellerId: 'seller-001',
+      userId: 'seller-001',
+      kind: 'product',
+      currency: 'KZT',
       images: [
         'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800',
         'https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=800',
@@ -163,16 +165,6 @@ class MockData {
       available: true,
       viewCount: 234,
       favoriteCount: 18,
-      condition: 'new',
-      brand: 'Brembo',
-      location: 'Almaty, Kazakhstan',
-      specifications: {
-        'width': '155mm',
-        'height': '72mm',
-        'material': 'ceramic',
-        'warranty': '2 years',
-        'fits': 'BMW X5 2018-2023',
-      },
     ),
     const MarketProductModel(
       id: 'product-002',
@@ -181,22 +173,15 @@ class MockData {
           'High-performance hybrid battery for Toyota Camry 2018-2020. 8-year warranty, tested and certified.',
       price: 2499.99,
       category: 'parts',
-      sellerId: 'seller-002',
+      userId: 'seller-002',
+      kind: 'product',
+      currency: 'KZT',
       images: [
         'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800',
       ],
       available: true,
       viewCount: 892,
       favoriteCount: 64,
-      condition: 'new',
-      brand: 'Toyota Genuine',
-      location: 'Nur-Sultan, Kazakhstan',
-      specifications: {
-        'voltage': '201.6V',
-        'capacity': '6.5Ah',
-        'warranty': '8 years',
-        'weight': '45kg',
-      },
     ),
     const MarketProductModel(
       id: 'product-003',
@@ -205,7 +190,9 @@ class MockData {
           'Professional off-road LED light bar for Toyota Land Cruiser 200. 42-inch, waterproof IP68, 260W output.',
       price: 449.99,
       category: 'accessories',
-      sellerId: 'seller-001',
+      userId: 'seller-001',
+      kind: 'product',
+      currency: 'KZT',
       images: [
         'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800',
         'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800',
@@ -213,15 +200,6 @@ class MockData {
       available: true,
       viewCount: 567,
       favoriteCount: 42,
-      condition: 'new',
-      brand: 'Rigid Industries',
-      location: 'Almaty, Kazakhstan',
-      specifications: {
-        'size': '42 inch',
-        'power': '260W',
-        'waterproof': 'IP68',
-        'lumens': '26,000',
-      },
     ),
     const MarketProductModel(
       id: 'product-004',
@@ -230,26 +208,19 @@ class MockData {
           'All-weather car cover for SUVs. Fits BMW X5, Land Cruiser, and similar sized vehicles. UV protection, waterproof.',
       price: 129.99,
       category: 'accessories',
-      sellerId: 'seller-003',
+      userId: 'seller-003',
+      kind: 'product',
+      currency: 'KZT',
       images: [
         'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800',
       ],
       available: true,
       viewCount: 890,
       favoriteCount: 65,
-      condition: 'new',
-      brand: 'CoverKing',
-      location: 'Almaty, Kazakhstan',
-      specifications: {
-        'size': 'XXL (fits SUVs)',
-        'material': 'multi-layer fabric',
-        'waterproof': 'yes',
-        'uv_protection': 'yes',
-      },
     ),
   ];
 
-  // Mock Social Posts
+  // Посты социальной сети (mock).
   static final mockSocialPosts = [
     SocialPostModel(
       id: 'post-001',
@@ -319,7 +290,7 @@ class MockData {
     ),
   ];
 
-  // Mock AI Chat Messages
+  // Сообщения ИИ-чата (mock).
   static final mockChatMessages = [
     {
       'role': 'user',
@@ -348,4 +319,44 @@ class MockData {
       ),
     },
   ];
+
+  // ============== ВРЕМЕННЫЕ MOCK-ДАННЫЕ ==============
+  // TODO: Удалить после подключения реальных API.
+  // Минимальные заглушки, чтобы не ломать сборку.
+
+  /// Товары корзины (API еще нет).
+  static final mockCartItems = <dynamic>[];
+
+  /// Чаты (API еще нет).
+  static final mockChatThreads = <dynamic>[];
+
+  /// Сообщения чатов (API еще нет).
+  static final mockChatMessagesByThread = <String, List<dynamic>>{};
+
+  /// Сообщества (API еще нет).
+  static final mockCommunities = <dynamic>[];
+
+  /// Участники сообщества (API еще нет).
+  static final mockCommunityMembers = <dynamic>[];
+
+  /// FAQ (API еще нет).
+  static final mockFaqItems = <dynamic>[];
+
+  /// Расходы (API еще нет).
+  static final mockExpenses = <dynamic>[];
+
+  /// Категории расходов (API еще нет).
+  static final mockCategories = <dynamic>[];
+
+  /// Заказы (API еще нет).
+  static final mockOrders = <dynamic>[];
+
+  /// Отзывы (API еще нет).
+  static final mockReviews = <dynamic>[];
+
+  /// Mock search results (no backend API yet)
+  static final mockSearchResult = <dynamic>[];
+
+  /// Mock settings (no backend API yet)
+  static final mockSettings = <String, dynamic>{};
 }

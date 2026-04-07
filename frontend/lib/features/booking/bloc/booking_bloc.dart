@@ -26,18 +26,18 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     LoadBookings event,
     Emitter<BookingState> emit,
   ) async {
-    _logger.i('📥 Loading bookings...');
+    _logger.i('Загрузка бронирований...');
     emit(const BookingLoading());
 
     final result = await repository.getBookings();
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to load bookings: ${failure.message}');
+        _logger.e('Не удалось загрузить бронирования: ${failure.message}');
         emit(BookingError(failure));
       },
       (bookings) {
-        _logger.i('✅ Loaded ${bookings.length} bookings');
+        _logger.i('Загружено бронирований: ${bookings.length}');
         emit(
           BookingLoaded(
             bookings: bookings,
@@ -54,7 +54,7 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     RefreshBookings event,
     Emitter<BookingState> emit,
   ) async {
-    _logger.i('🔄 Refreshing bookings...');
+    _logger.i('Обновление бронирований...');
 
     // Show loading indicator while keeping current data
     if (state is BookingLoaded) {
@@ -67,7 +67,7 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to refresh: ${failure.message}');
+        _logger.e('Не удалось обновить бронирования: ${failure.message}');
 
         // Try to show cached data on failure
         if (state is BookingLoaded) {
@@ -94,15 +94,16 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     CreateBooking event,
     Emitter<BookingState> emit,
   ) async {
-    _logger.i('➕ Creating booking: ${event.serviceName}');
+    _logger.i(
+      '➕ Creating booking for service center: ${event.serviceCenterId}',
+    );
     emit(const BookingOperationInProgress('create'));
 
     final result = await repository.createBooking(
-      serviceName: event.serviceName,
-      address: event.address,
-      date: event.date,
-      timeSlot: event.timeSlot,
-      price: event.price,
+      serviceCenterId: event.serviceCenterId,
+      vehicleId: event.vehicleId,
+      scheduledAt: event.scheduledAt,
+      notes: event.notes,
     );
 
     result.fold(
@@ -136,8 +137,8 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
 
     final result = await repository.updateBooking(
       id: event.id,
-      date: event.date,
-      timeSlot: event.timeSlot,
+      status: event.status,
+      notes: event.notes,
     );
 
     result.fold(

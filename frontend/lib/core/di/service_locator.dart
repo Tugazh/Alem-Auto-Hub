@@ -10,6 +10,13 @@ import '../../data/services/maintenance_service.dart';
 import '../../data/services/booking_service.dart';
 import '../../data/services/fines_service.dart';
 import '../../data/services/warehouse_service.dart';
+import '../../data/services/cart_service.dart';
+import '../../data/services/order_service.dart';
+import '../../data/services/review_service.dart';
+import '../../data/services/chat_service.dart';
+import '../../data/services/community_service.dart';
+import '../../data/services/search_service.dart';
+import '../../data/services/finance_service.dart';
 
 /// Service Locator для управления зависимостями
 ///
@@ -34,6 +41,13 @@ class ServiceLocator {
   late final BookingService _bookingService;
   late final FinesService _finesService;
   late final WarehouseService _warehouseService;
+  late final CartService _cartService;
+  late final OrderService _orderService;
+  late final ReviewService _reviewService;
+  late final ChatService _chatService;
+  late final CommunityService _communityService;
+  late final SearchService _searchService;
+  late final FinanceService _financeService;
 
   bool _initialized = false;
 
@@ -43,7 +57,7 @@ class ServiceLocator {
     }
   }
 
-  /// Initialize all services
+  /// Инициализировать все сервисы.
   void init() {
     if (_initialized) return;
 
@@ -61,9 +75,16 @@ class ServiceLocator {
     _bookingService = BookingService(_apiClient);
     _finesService = FinesService(_apiClient);
     _warehouseService = WarehouseService(_apiClient);
+    _cartService = CartService(_apiClient);
+    _orderService = OrderService(_apiClient);
+    _reviewService = ReviewService(_apiClient);
+    _chatService = ChatService(_apiClient);
+    _communityService = CommunityService(_apiClient);
+    _searchService = SearchService(_apiClient);
+    _financeService = FinanceService(_apiClient);
 
     _initialized = true;
-    debugPrint('✅ All services initialized successfully');
+    debugPrint('Все сервисы успешно инициализированы');
   }
 
   // Getters
@@ -120,5 +141,40 @@ class ServiceLocator {
   WarehouseService get warehouseService {
     _ensureInitialized();
     return _warehouseService;
+  }
+
+  CartService get cartService {
+    _ensureInitialized();
+    return _cartService;
+  }
+
+  OrderService get orderService {
+    _ensureInitialized();
+    return _orderService;
+  }
+
+  ReviewService get reviewService {
+    _ensureInitialized();
+    return _reviewService;
+  }
+
+  ChatService get chatService {
+    _ensureInitialized();
+    return _chatService;
+  }
+
+  CommunityService get communityService {
+    _ensureInitialized();
+    return _communityService;
+  }
+
+  SearchService get searchService {
+    _ensureInitialized();
+    return _searchService;
+  }
+
+  FinanceService get financeService {
+    _ensureInitialized();
+    return _financeService;
   }
 }

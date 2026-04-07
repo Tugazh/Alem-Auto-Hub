@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'car_model.g.dart';
 
-/// Car/Garage model соответствует backend /api/v1/garage
+/// Модель авто/гаража соответствует бекенду /api/v1/garage.
 @JsonSerializable()
 class CarModel {
   final String id;

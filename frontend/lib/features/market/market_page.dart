@@ -270,14 +270,14 @@ class _ProductsTabState extends State<ProductsTab> {
 
   Widget _buildCategories() {
     final categories = [
-      {'icon': '🔨', 'label': 'Инструменты'},
-      {'icon': '🚗', 'label': 'Транспорт'},
-      {'icon': '🔧', 'label': 'Запчасти'},
-      {'icon': '🛞', 'label': 'Шины'},
-      {'icon': '🛢️', 'label': 'Масла и\nжидкости'},
-      {'icon': '🔋', 'label': 'Аккумуляторы'},
-      {'icon': '💿', 'label': 'Диски'},
-      {'icon': '🎨', 'label': 'Аксессуары'},
+      {'icon': Icons.build, 'label': 'Инструменты'},
+      {'icon': Icons.directions_car, 'label': 'Транспорт'},
+      {'icon': Icons.settings, 'label': 'Запчасти'},
+      {'icon': Icons.circle, 'label': 'Шины'},
+      {'icon': Icons.local_gas_station, 'label': 'Масла и\nжидкости'},
+      {'icon': Icons.battery_full, 'label': 'Аккумуляторы'},
+      {'icon': Icons.album, 'label': 'Диски'},
+      {'icon': Icons.palette, 'label': 'Аксессуары'},
     ];
 
     return GridView.builder(
@@ -292,14 +292,14 @@ class _ProductsTabState extends State<ProductsTab> {
       itemCount: categories.length,
       itemBuilder: (context, index) {
         return _buildCategoryItem(
-          categories[index]['icon']!,
-          categories[index]['label']!,
+          categories[index]['icon'] as IconData,
+          categories[index]['label'] as String,
         );
       },
     );
   }
 
-  Widget _buildCategoryItem(String icon, String label) {
+  Widget _buildCategoryItem(IconData icon, String label) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -311,7 +311,7 @@ class _ProductsTabState extends State<ProductsTab> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Text(icon, style: const TextStyle(fontSize: 32)),
+            child: Icon(icon, size: 28, color: AppColors.textPrimary),
           ),
         ),
         const SizedBox(height: 6),
@@ -419,7 +419,7 @@ class ServicesTab extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.75,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
@@ -433,10 +433,11 @@ class ServicesTab extends StatelessWidget {
 
   Widget _buildCategoryItem(String icon, String label) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
@@ -445,12 +446,15 @@ class ServicesTab extends StatelessWidget {
             child: Text(icon, style: const TextStyle(fontSize: 32)),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11),
-          maxLines: 2,
+        const SizedBox(height: 6),
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -538,40 +542,47 @@ class ServicesTab extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  service['name']!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  service['address']!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: AppColors.warning, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${service['rating']} ${service['reviews']}',
-                      style: const TextStyle(fontSize: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    service['name']!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-              ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    service['address']!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: AppColors.warning,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${service['rating']} ${service['reviews']}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -652,7 +663,7 @@ class AnnouncementsTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 140,
+            height: 120,
             decoration: BoxDecoration(
               color: AppColors.textPrimary,
               borderRadius: const BorderRadius.vertical(
@@ -666,35 +677,42 @@ class AnnouncementsTab extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  announcement['title']!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    announcement['title']!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  announcement['price']!,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Text(
+                    announcement['price']!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${announcement['date']}     ${announcement['location']}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                  const Spacer(),
+                  Text(
+                    '${announcement['date']}     ${announcement['location']}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

@@ -9,6 +9,7 @@ import '../../data/models/maintenance_model.dart';
 import '../car_detail/widgets/car_3d_viewer.dart';
 import '../warehouse/warehouse_page.dart';
 import '../booking/booking_page.dart';
+import '../settings/profile_settings_page.dart';
 import '../../shared/widgets/states/empty_state.dart';
 import '../../shared/widgets/states/error_state.dart';
 import '../../shared/widgets/states/loading_state.dart';
@@ -232,9 +233,9 @@ class _HomePageContentState extends State<HomePageContent>
               Text(
                 'Привет, Nurtugan!',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               _buildCitySelector(),
@@ -252,6 +253,17 @@ class _HomePageContentState extends State<HomePageContent>
               assetPath: 'assets/icons/notifications.svg',
               onTap: _showNotificationsSheet,
             ),
+            const SizedBox(width: 12),
+            _buildHeaderIconButton(
+              icon: Icons.settings_outlined,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileSettingsPage(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ],
@@ -259,7 +271,8 @@ class _HomePageContentState extends State<HomePageContent>
   }
 
   Widget _buildHeaderIconButton({
-    required String assetPath,
+    String? assetPath,
+    IconData? icon,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -272,15 +285,19 @@ class _HomePageContentState extends State<HomePageContent>
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: SizedBox.square(
-            dimension: 20,
-            child: SvgPicture.asset(
-              assetPath,
-              fit: BoxFit.contain,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
-          ),
+          child: icon != null
+              ? Icon(icon, size: 20, color: Colors.white)
+              : SizedBox.square(
+                  dimension: 20,
+                  child: SvgPicture.asset(
+                    assetPath!,
+                    fit: BoxFit.contain,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -342,9 +359,9 @@ class _HomePageContentState extends State<HomePageContent>
           Text(
             '$_selectedCity, Казахстан',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                ),
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(width: 4),
           const Icon(
@@ -416,8 +433,8 @@ class _HomePageContentState extends State<HomePageContent>
                   Text(
                     'Уведомления',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -458,11 +475,7 @@ class _HomePageContentState extends State<HomePageContent>
     );
   }
 
-  Widget _buildActionButton(
-    String label,
-    String iconPath,
-    VoidCallback onTap,
-  ) {
+  Widget _buildActionButton(String label, String iconPath, VoidCallback onTap) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
@@ -479,8 +492,10 @@ class _HomePageContentState extends State<HomePageContent>
               child: SvgPicture.asset(
                 iconPath,
                 fit: BoxFit.contain,
-                colorFilter:
-                    const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -513,10 +528,7 @@ class _HomePageContentState extends State<HomePageContent>
 
   Widget _buildCarCarousel() {
     if (_isLoadingCars) {
-      return const LoadingState(
-        height: 380,
-        message: 'Загрузка автомобиля...',
-      );
+      return const LoadingState(height: 380, message: 'Загрузка автомобиля...');
     }
 
     if (_errorMessage != null) {
@@ -541,9 +553,7 @@ class _HomePageContentState extends State<HomePageContent>
 
     return Container(
       height: 380,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(24)),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -555,10 +565,10 @@ class _HomePageContentState extends State<HomePageContent>
               Text(
                 '${car.make} ${car.model}',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 26,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 26,
+                ),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -570,7 +580,7 @@ class _HomePageContentState extends State<HomePageContent>
                       builder: (context, child) {
                         final page = _carPageController.hasClients
                             ? _carPageController.page ??
-                                _selectedCarIndex.toDouble()
+                                  _selectedCarIndex.toDouble()
                             : _selectedCarIndex.toDouble();
 
                         return Stack(
@@ -596,11 +606,18 @@ class _HomePageContentState extends State<HomePageContent>
                                   alignment: Alignment.center,
                                   transform: Matrix4.identity()
                                     ..setEntry(3, 2, 0.001)
-                                    ..translate(0.0, translateY, 0.0)
+                                    ..translateByDouble(
+                                      0.0,
+                                      translateY,
+                                      0.0,
+                                      1.0,
+                                    )
                                     ..rotateY(rotateY)
-                                    ..scale(scale),
+                                    ..scaleByDouble(scale, scale, scale, 1.0),
                                   child: _buildCarFanCard(
-                                      _cars[index], index == safeIndex),
+                                    _cars[index],
+                                    index == safeIndex,
+                                  ),
                                 ),
                               ),
                             );
@@ -633,9 +650,7 @@ class _HomePageContentState extends State<HomePageContent>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _statPill(
-                    car.mileage != null ? '${car.mileage} км' : '—',
-                  ),
+                  _statPill(car.mileage != null ? '${car.mileage} км' : '—'),
                   const SizedBox(width: 12),
                   _statPill(car.plateNumber ?? '—'),
                 ],
@@ -675,22 +690,19 @@ class _HomePageContentState extends State<HomePageContent>
   Widget _buildCarouselDots() {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(
-        _cars.length,
-        (index) {
-          final isActive = index == _selectedCarIndex;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            height: 4,
-            width: isActive ? 40 : 28,
-            decoration: BoxDecoration(
-              color: isActive ? const Color(0xFFDA562C) : Colors.white,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          );
-        },
-      ),
+      children: List.generate(_cars.length, (index) {
+        final isActive = index == _selectedCarIndex;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          height: 4,
+          width: isActive ? 40 : 28,
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFFDA562C) : Colors.white,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      }),
     );
   }
 
@@ -719,15 +731,15 @@ class _HomePageContentState extends State<HomePageContent>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818).withOpacity(0.9),
+        color: const Color(0xFF181818).withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         value,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -738,8 +750,9 @@ class _HomePageContentState extends State<HomePageContent>
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color:
-              filled ? AppColors.primary : Colors.white.withValues(alpha: 0.18),
+          color: filled
+              ? AppColors.primary
+              : Colors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -761,18 +774,13 @@ class _HomePageContentState extends State<HomePageContent>
       ),
       child: Container(
         height: 180,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/map.png',
-                fit: BoxFit.cover,
-              ),
+              Image.asset('assets/images/map.png', fit: BoxFit.cover),
               Positioned(
                 left: 16,
                 bottom: 16,
@@ -805,9 +813,7 @@ class _HomePageContentState extends State<HomePageContent>
                                 const SizedBox(width: 10),
                                 Text(
                                   'Поиск',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
+                                  style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(color: Colors.white),
                                 ),
                               ],
@@ -840,9 +846,9 @@ class _HomePageContentState extends State<HomePageContent>
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 16),
           const LoadingState(height: 150, message: 'Загрузка плана...'),
@@ -858,9 +864,9 @@ class _HomePageContentState extends State<HomePageContent>
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 16),
           ErrorState(
@@ -879,9 +885,9 @@ class _HomePageContentState extends State<HomePageContent>
           Text(
             'План обслуживания',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 16),
           const EmptyState(
@@ -914,9 +920,9 @@ class _HomePageContentState extends State<HomePageContent>
         Text(
           'План обслуживания',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 16),
         // Табы с иконками
@@ -979,8 +985,8 @@ class _HomePageContentState extends State<HomePageContent>
               child: Text(
                 'Нет записей',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           ),
@@ -1011,17 +1017,13 @@ class _HomePageContentState extends State<HomePageContent>
                             children: [
                               Text(
                                 _getMaintenanceTypeLabel(item.type),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 _formatMaintenanceDate(item),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: AppColors.textSecondary,
                                       fontSize: 12,
@@ -1125,16 +1127,12 @@ class _HomePageContentState extends State<HomePageContent>
                       children: [
                         Text(
                           'ALEM AUTO BOX',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
+                          style: Theme.of(context).textTheme.bodyLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Полная диагностика авто',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
@@ -1153,15 +1151,15 @@ class _HomePageContentState extends State<HomePageContent>
                   Text(
                     'Цена: от 15 000 ₸',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const Spacer(),
                   Text(
                     'Время: ~2 часа',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),

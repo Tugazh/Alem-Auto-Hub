@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/market_product_model.dart';
 
-/// Market Service для работы с /api/v1/market endpoints
+/// Сервис маркетплейса для работы с /api/v1/market.
 ///
-/// Backend структура:
+/// Структура бекенда:
 /// - GET /market/products - Список товаров (kind=product)
 /// - GET /market/services - Список услуг (kind=service)
 /// - GET /market/ads - Список объявлений (kind=ad)
@@ -17,7 +17,7 @@ class MarketService {
 
   MarketService(this._apiClient);
 
-  /// Получить список товаров (products)
+  /// Получить список товаров (products).
   Future<List<MarketProductModel>> getProducts({
     String? category,
     String? search,
@@ -36,14 +36,14 @@ class MarketService {
       );
 
       if (response.data is! List) {
-        debugPrint('⚠️ Market API: unexpected response format');
+        debugPrint('Market API: неожиданный формат ответа');
         return [];
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => MarketProductModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load products from backend: $e');
+      debugPrint('Не удалось загрузить товары: $e');
       return [];
     }
   }
@@ -73,7 +73,7 @@ class MarketService {
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => MarketProductModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load services from backend: $e');
+      debugPrint('Не удалось загрузить услуги: $e');
       return [];
     }
   }
@@ -103,7 +103,7 @@ class MarketService {
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => MarketProductModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load ads from backend: $e');
+      debugPrint('Не удалось загрузить объявления: $e');
       return [];
     }
   }
@@ -114,7 +114,7 @@ class MarketService {
       final response = await _apiClient.get('/market/$kind/$id');
       return MarketProductModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to load item: $e');
+      debugPrint('Не удалось загрузить элемент: $e');
       return null;
     }
   }
@@ -141,7 +141,7 @@ class MarketService {
 
       return MarketProductModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to create product: $e');
+      debugPrint('Не удалось создать товар: $e');
       return null;
     }
   }
@@ -168,7 +168,7 @@ class MarketService {
 
       return MarketProductModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to create service: $e');
+      debugPrint('Не удалось создать услугу: $e');
       return null;
     }
   }
@@ -197,7 +197,7 @@ class MarketService {
 
       return MarketProductModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to update item: $e');
+      debugPrint('Не удалось обновить элемент: $e');
       return null;
     }
   }
@@ -208,7 +208,7 @@ class MarketService {
       await _apiClient.delete('/market/$kind/$id');
       return true;
     } catch (e) {
-      debugPrint('❌ Failed to delete item: $e');
+      debugPrint('Не удалось удалить элемент: $e');
       return false;
     }
   }

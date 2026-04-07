@@ -6,7 +6,7 @@ import '../../../data/repositories/market_repository.dart';
 import '../../../data/models/market_product_model.dart';
 import '../../../core/error/result.dart';
 
-/// BLoC for managing market products
+/// BLoC для управления товарами маркетплейса.
 class MarketBloc extends Bloc<MarketEvent, MarketState> {
   final MarketRepository repository;
   final Logger _logger = Logger();
@@ -21,23 +21,23 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
     on<CreateProduct>(_onCreateProduct);
   }
 
-  /// Load products (cache-first strategy)
+  /// Загрузить товары (стратегия cache-first).
   Future<void> _onLoadProducts(
     LoadProducts event,
     Emitter<MarketState> emit,
   ) async {
-    _logger.i('📥 Loading products...');
+    _logger.i('Загрузка товаров...');
     emit(const MarketLoading());
 
     final result = await repository.getProducts();
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to load products: ${failure.message}');
+        _logger.e('Не удалось загрузить товары: ${failure.message}');
         emit(MarketError(failure));
       },
       (products) {
-        _logger.i('✅ Loaded ${products.length} products');
+        _logger.i('Загружено товаров: ${products.length}');
         emit(
           MarketLoaded(
             products: products,
@@ -49,12 +49,12 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
     );
   }
 
-  /// Refresh products (force network)
+  /// Обновить товары (принудительно из сети).
   Future<void> _onRefreshProducts(
     RefreshProducts event,
     Emitter<MarketState> emit,
   ) async {
-    _logger.i('🔄 Refreshing products...');
+    _logger.i('Обновление товаров...');
 
     if (state is MarketLoaded) {
       emit(const MarketLoading(isRefreshing: true));
@@ -66,7 +66,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to refresh: ${failure.message}');
+        _logger.e('Не удалось обновить товары: ${failure.message}');
 
         if (state is MarketLoaded) {
           final currentState = state as MarketLoaded;
@@ -76,7 +76,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
         }
       },
       (products) {
-        _logger.i('✅ Refreshed ${products.length} products');
+        _logger.i('Обновлено товаров: ${products.length}');
         final currentState = state;
         emit(
           MarketLoaded(
@@ -94,7 +94,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
     );
   }
 
-  /// Search products by query
+  /// Поиск товаров по запросу.
   Future<void> _onSearchProducts(
     SearchProducts event,
     Emitter<MarketState> emit,
@@ -115,11 +115,11 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
         ),
       );
 
-      _logger.i('🔍 Search: "${event.query}" (${filtered.length} results)');
+      _logger.i('Поиск: "${event.query}" (результатов: ${filtered.length})');
     }
   }
 
-  /// Filter products by category
+  /// Фильтрация товаров по категории.
   Future<void> _onFilterProductsByCategory(
     FilterProductsByCategory event,
     Emitter<MarketState> emit,
@@ -140,33 +140,33 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
         ),
       );
 
-      _logger.i('🏷️ Category: ${event.category} (${filtered.length} items)');
+      _logger.i('Категория: ${event.category} (элементов: ${filtered.length})');
     }
   }
 
-  /// Load product details
+  /// Загрузить детали товара.
   Future<void> _onLoadProductDetails(
     LoadProductDetails event,
     Emitter<MarketState> emit,
   ) async {
-    _logger.i('📦 Loading product details: ${event.productId}');
+    _logger.i('Загрузка деталей товара: ${event.productId}');
     emit(const MarketLoading());
 
     final result = await repository.getProductDetails(event.productId);
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to load product: ${failure.message}');
+        _logger.e('Не удалось загрузить товар: ${failure.message}');
         emit(MarketError(failure));
       },
       (product) {
-        _logger.i('✅ Product loaded: ${product.title}');
+        _logger.i('Товар загружен: ${product.title}');
         emit(MarketProductDetailsLoaded(product));
       },
     );
   }
 
-  /// Toggle favorite status
+  /// Переключить статус избранного.
   Future<void> _onToggleFavorite(
     ToggleFavorite event,
     Emitter<MarketState> emit,
@@ -177,22 +177,22 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
 
       if (favoriteIds.contains(event.productId)) {
         favoriteIds.remove(event.productId);
-        _logger.i('💔 Removed from favorites: ${event.productId}');
+        _logger.i('Удалено из избранного: ${event.productId}');
       } else {
         favoriteIds.add(event.productId);
-        _logger.i('❤️ Added to favorites: ${event.productId}');
+        _logger.i('Добавлено в избранное: ${event.productId}');
       }
 
       emit(currentState.copyWith(favoriteIds: favoriteIds));
     }
   }
 
-  /// Create new product
+  /// Создать новый товар.
   Future<void> _onCreateProduct(
     CreateProduct event,
     Emitter<MarketState> emit,
   ) async {
-    _logger.i('➕ Creating product: ${event.title}');
+    _logger.i('Создание товара: ${event.title}');
     emit(const MarketOperationInProgress('create'));
 
     final result = await repository.createProduct(
@@ -200,25 +200,25 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
       description: event.description,
       price: event.price,
       category: event.category,
-      images: event.images,
+      // images: event.images, // TODO: Добавить поддержку изображений в репозитории.
     );
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to create product: ${failure.message}');
+        _logger.e('Не удалось создать товар: ${failure.message}');
         emit(MarketError(failure));
       },
       (product) {
-        _logger.i('✅ Product created: ${product.id}');
+        _logger.i('Товар создан: ${product.id}');
         emit(const MarketOperationSuccess('create', 'Товар создан'));
 
-        // Reload products
+        // Перезагрузка списка товаров.
         add(const LoadProducts());
       },
     );
   }
 
-  /// Apply search and category filters
+  /// Применить фильтры поиска и категории.
   List<MarketProductModel> _applyFilters(
     List<MarketProductModel> products,
     String? category,
@@ -226,7 +226,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
   ) {
     var filtered = products;
 
-    // Apply category filter
+    // Применяем фильтр категории.
     if (category != null && category != 'all') {
       filtered = filtered.where((p) => p.category == category).toList();
     }
@@ -237,7 +237,7 @@ class MarketBloc extends Bloc<MarketEvent, MarketState> {
       filtered = filtered.where((p) {
         return p.title.toLowerCase().contains(query) ||
             p.description.toLowerCase().contains(query) ||
-            (p.brand?.toLowerCase().contains(query) ?? false);
+            p.category.toLowerCase().contains(query);
       }).toList();
     }
 

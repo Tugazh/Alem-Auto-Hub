@@ -20,38 +20,32 @@ class RefreshBookings extends BookingEvent {
 
 /// Create new booking
 class CreateBooking extends BookingEvent {
-  final String serviceName;
-  final String address;
-  final DateTime date;
-  final String timeSlot;
-  final double price;
+  final String serviceCenterId;
+  final String vehicleId;
+  final DateTime scheduledAt;
+  final String? notes;
 
   const CreateBooking({
-    required this.serviceName,
-    required this.address,
-    required this.date,
-    required this.timeSlot,
-    required this.price,
+    required this.serviceCenterId,
+    required this.vehicleId,
+    required this.scheduledAt,
+    this.notes,
   });
 
   @override
-  List<Object?> get props => [serviceName, address, date, timeSlot, price];
+  List<Object?> get props => [serviceCenterId, vehicleId, scheduledAt, notes];
 }
 
 /// Update existing booking
 class UpdateBooking extends BookingEvent {
   final String id;
-  final DateTime date;
-  final String timeSlot;
+  final String? status;
+  final String? notes;
 
-  const UpdateBooking({
-    required this.id,
-    required this.date,
-    required this.timeSlot,
-  });
+  const UpdateBooking({required this.id, this.status, this.notes});
 
   @override
-  List<Object?> get props => [id, date, timeSlot];
+  List<Object?> get props => [id, status, notes];
 }
 
 /// Cancel booking

@@ -4,9 +4,9 @@ import '../models/car_model.dart';
 import '../cache/cache_service.dart';
 import '../mock/mock_data.dart';
 
-/// Garage Service для работы с /api/v1/garage endpoints
+/// Сервис гаража для работы с /api/v1/garage.
 ///
-/// Endpoints:
+/// Эндпоинты:
 /// - GET /garage - Список гаражей
 /// - POST /garage - Создать гараж
 /// - GET /garage/:id - Получить гараж
@@ -18,12 +18,12 @@ class GarageService {
 
   GarageService(this._apiClient, this._cacheService);
 
-  /// Получить список всех гаражей пользователя
+  /// Получить список всех гаражей пользователя.
   Future<List<CarModel>> getGarages() async {
     try {
       final response = await _apiClient.get('/garage');
       if (response.data is! List) {
-        debugPrint('⚠️ Backend not implemented, using mock data');
+        debugPrint('WARNING: Backend not implemented, using mock data');
         return MockData.mockVehicles;
       }
 
@@ -32,18 +32,18 @@ class GarageService {
       await _cacheService.saveCars(cars);
       return cars;
     } catch (e) {
-      debugPrint('⚠️ Failed to load from backend: $e, using mock data');
+      debugPrint('WARNING: Failed to load from backend: $e, using mock data');
       return MockData.mockVehicles;
     }
   }
 
-  /// Получить конкретный гараж по ID
+  /// Получить конкретный гараж по ID.
   Future<CarModel> getGarage(String id) async {
     final response = await _apiClient.get('/garage/$id');
     return CarModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Создать новый гараж
+  /// Создать новый гараж.
   Future<CarModel> createGarage({
     required String name,
     required String make,
@@ -69,7 +69,7 @@ class GarageService {
     return CarModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Обновить гараж
+  /// Обновить гараж.
   Future<CarModel> updateGarage(
     String id, {
     String? name,
@@ -88,7 +88,7 @@ class GarageService {
     return CarModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Удалить гараж
+  /// Удалить гараж.
   Future<void> deleteGarage(String id) async {
     await _apiClient.delete('/garage/$id');
   }

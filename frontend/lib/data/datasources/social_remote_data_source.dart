@@ -39,7 +39,7 @@ class SocialRemoteDataSource {
   }
 
   Future<void> deletePost(String postId) async {
-    // TODO: Implement when backend adds DELETE /social/posts/:id endpoint
+    // TODO: Реализовать после добавления DELETE /social/posts/:id на бекенде.
     throw UnimplementedError('Delete post not yet implemented in backend');
   }
 }

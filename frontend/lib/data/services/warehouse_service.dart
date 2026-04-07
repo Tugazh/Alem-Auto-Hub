@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/warehouse_part_model.dart';
 
-/// Warehouse Service для работы с /api/v1/warehouse
+/// Сервис склада для работы с /api/v1/warehouse.
 ///
-/// Backend endpoints:
+/// Эндпоинты бекенда:
 /// - GET /warehouse/parts - Список запчастей
 /// - POST /warehouse/parts - Создать запчасть
 /// - GET /warehouse/parts/:id - Получить запчасть
@@ -17,7 +17,7 @@ class WarehouseService {
 
   WarehouseService(this._apiClient);
 
-  /// Получить список запчастей
+  /// Получить список запчастей.
   Future<List<WarehousePartModel>> getParts({
     String? category,
     String? search,
@@ -38,30 +38,30 @@ class WarehouseService {
       );
 
       if (response.data is! List) {
-        debugPrint('⚠️ Warehouse API: unexpected response format');
+        debugPrint('Warehouse API: неожиданный формат ответа');
         return [];
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => WarehousePartModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load parts: $e');
+      debugPrint('Не удалось загрузить запчасти: $e');
       return [];
     }
   }
 
-  /// Получить запчасть по ID
+  /// Получить запчасть по ID.
   Future<WarehousePartModel?> getPart(String id) async {
     try {
       final response = await _apiClient.get('/warehouse/parts/$id');
       return WarehousePartModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to load part: $e');
+      debugPrint('Не удалось загрузить запчасть: $e');
       return null;
     }
   }
 
-  /// Создать новую запчасть
+  /// Создать новую запчасть.
   Future<WarehousePartModel?> createPart({
     required String name,
     required String partNumber,
@@ -91,12 +91,12 @@ class WarehouseService {
 
       return WarehousePartModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to create part: $e');
+      debugPrint('Не удалось создать запчасть: $e');
       return null;
     }
   }
 
-  /// Обновить запчасть
+  /// Обновить запчасть.
   Future<WarehousePartModel?> updatePart({
     required String id,
     String? name,
@@ -125,12 +125,12 @@ class WarehouseService {
 
       return WarehousePartModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to update part: $e');
+      debugPrint('Не удалось обновить запчасть: $e');
       return null;
     }
   }
 
-  /// Проверить наличие запчасти
+  /// Проверить наличие запчасти.
   Future<Map<String, dynamic>?> checkAvailability(
     String id,
     int quantity,
@@ -143,16 +143,16 @@ class WarehouseService {
 
       return response.data as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ Failed to check availability: $e');
+      debugPrint('Не удалось проверить наличие: $e');
       return null;
     }
   }
 
-  /// Обновить остаток (увеличить или уменьшить)
+  /// Обновить остаток (увеличить или уменьшить).
   Future<WarehousePartModel?> updateStock({
     required String id,
     required int quantity,
-    String operation = 'add', // 'add' или 'subtract'
+    String operation = 'add', // варианты: 'add' или 'subtract'
   }) async {
     try {
       final response = await _apiClient.post(
@@ -162,18 +162,18 @@ class WarehouseService {
 
       return WarehousePartModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to update stock: $e');
+      debugPrint('Не удалось обновить остаток: $e');
       return null;
     }
   }
 
-  /// Удалить запчасть
+  /// Удалить запчасть.
   Future<bool> deletePart(String id) async {
     try {
       await _apiClient.delete('/warehouse/parts/$id');
       return true;
     } catch (e) {
-      debugPrint('❌ Failed to delete part: $e');
+      debugPrint('Не удалось удалить запчасть: $e');
       return false;
     }
   }

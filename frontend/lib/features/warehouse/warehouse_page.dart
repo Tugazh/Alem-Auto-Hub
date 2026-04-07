@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/di/service_locator.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/models/warehouse_part_model.dart';
 import '../../shared/widgets/main_bottom_nav.dart';
 import '../main/main_screen.dart';
 import '../market/market_page.dart';
@@ -13,43 +15,56 @@ class WarehousePage extends StatefulWidget {
 }
 
 class _WarehousePageState extends State<WarehousePage> {
-  final List<_WarehouseItem> _items = [
-    _WarehouseItem(
-      title: 'Зимняя шина\nна Toyota Camry',
-      price: 45500,
-      imageUrl:
-          'https://images.unsplash.com/photo-1526724038726-3007ffb8025f?auto=format&fit=crop&w=400&q=80',
-    ),
-    _WarehouseItem(
-      title: 'Varta Blue Dynamic E11\n74 Ач (правый+)',
-      price: 90000,
-      imageUrl:
-          'https://images.unsplash.com/photo-1614955969241-73dd1ef86c57?auto=format&fit=crop&w=400&q=80',
-    ),
-    _WarehouseItem(
-      title: 'Liqui Moly 5W-40\nМасло моторное,\nсинтетическое, 4 л',
-      price: 28600,
-      imageUrl:
-          'https://images.unsplash.com/photo-1583211893325-4cc98f4a56ea?auto=format&fit=crop&w=400&q=80',
-    ),
-  ];
+  List<WarehousePartModel> _items = [];
+  late final Map<String, int> _quantities = {};
+  bool _isLoading = true;
 
-  late final List<int> _quantities = List<int>.from([2, 1, 1]);
+  @override
+  void initState() {
+    super.initState();
+    _loadWarehouseParts();
+  }
+
+  Future<void> _loadWarehouseParts() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final parts = await ServiceLocator().warehouseService.getParts(
+        inStock: true,
+        limit: 20,
+      );
+
+      setState(() {
+        _items = parts;
+        // Инициализируем количество для каждой запчасти
+        for (var part in parts) {
+          _quantities[part.id] = 1;
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Failed to load warehouse parts: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   int get _total {
-    var sum = 0;
+    double sum = 0;
     for (var i = 0; i < _items.length; i++) {
-      sum += _items[i].price * _quantities[i];
+      final price = _items[i].price ?? 0;
+      final qty = _quantities[_items[i].id] ?? 1;
+      sum += price * qty;
     }
-    return sum;
+    return sum.round();
   }
 
   int get _discount => 3000;
 
-  void _updateQuantity(int index, int delta) {
+  void _updateQuantity(String id, int delta) {
     setState(() {
-      final next = _quantities[index] + delta;
-      _quantities[index] = next.clamp(1, 99);
+      final current = _quantities[id] ?? 1;
+      final next = current + delta;
+      _quantities[id] = next.clamp(1, 99);
     });
   }
 
@@ -97,41 +112,72 @@ class _WarehousePageState extends State<WarehousePage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              itemBuilder: (context, index) => _buildItemCard(index),
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemCount: _items.length,
-            ),
-          ),
-          _buildSummary(),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _items.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 64,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Склад пуст',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Добавьте запчасти в склад',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    itemBuilder: (context, index) => _buildItemCard(index),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemCount: _items.length,
                   ),
                 ),
-                child: const Text(
-                  'Добавить в маркет',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                _buildSummary(),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Добавить в маркет',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
       bottomNavigationBar: MainBottomNav(
         currentIndex: 0,
         onTap: _handleBottomNavTap,
@@ -141,7 +187,7 @@ class _WarehousePageState extends State<WarehousePage> {
 
   Widget _buildItemCard(int index) {
     final item = _items[index];
-    final qty = _quantities[index];
+    final qty = _quantities[item.id] ?? 1;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -157,31 +203,12 @@ class _WarehousePageState extends State<WarehousePage> {
               width: 110,
               height: 90,
               color: AppColors.background,
-              child: Image.network(
-                item.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Icon(
-                      Icons.inventory_2_outlined,
-                      color: AppColors.textSecondary,
-                      size: 28,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  );
-                },
+              child: Center(
+                child: Icon(
+                  Icons.inventory_2_outlined,
+                  color: AppColors.textSecondary,
+                  size: 32,
+                ),
               ),
             ),
           ),
@@ -195,11 +222,13 @@ class _WarehousePageState extends State<WarehousePage> {
                   children: [
                     Expanded(
                       child: Text(
-                        item.title,
+                        item.name,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           height: 1.3,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -210,9 +239,16 @@ class _WarehousePageState extends State<WarehousePage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  item.partNumber,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  '${item.price.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ' ')} ₸',
+                  item.priceFormatted,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -222,7 +258,7 @@ class _WarehousePageState extends State<WarehousePage> {
                   children: [
                     _buildQtyButton(
                       icon: Icons.remove,
-                      onTap: () => _updateQuantity(index, -1),
+                      onTap: () => _updateQuantity(item.id, -1),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -234,7 +270,7 @@ class _WarehousePageState extends State<WarehousePage> {
                     const SizedBox(width: 8),
                     _buildQtyButton(
                       icon: Icons.add,
-                      onTap: () => _updateQuantity(index, 1),
+                      onTap: () => _updateQuantity(item.id, 1),
                     ),
                   ],
                 ),
@@ -308,16 +344,4 @@ class _WarehousePageState extends State<WarehousePage> {
       ],
     );
   }
-}
-
-class _WarehouseItem {
-  final String title;
-  final int price;
-  final String imageUrl;
-
-  const _WarehouseItem({
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-  });
 }

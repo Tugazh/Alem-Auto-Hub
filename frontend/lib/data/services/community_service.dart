@@ -16,14 +16,20 @@ class CommunityService {
       );
 
       if (response.data is! List) {
-        return _applyFilter(MockData.mockCommunities, filter);
+        return _applyFilter(
+          MockData.mockCommunities.cast<CommunityModel>(),
+          filter,
+        );
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => CommunityModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load communities: $e, using mock data');
-      return _applyFilter(MockData.mockCommunities, filter);
+      debugPrint('Не удалось загрузить сообщества: $e. Используем mock-данные');
+      return _applyFilter(
+        MockData.mockCommunities.cast<CommunityModel>(),
+        filter,
+      );
     }
   }
 
@@ -32,11 +38,8 @@ class CommunityService {
       final response = await _apiClient.get('/communities/$id');
       return CommunityModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('⚠️ Failed to load community: $e, using mock data');
-      return MockData.mockCommunities.firstWhere(
-        (item) => item.id == id,
-        orElse: () => MockData.mockCommunities.first,
-      );
+      debugPrint('Не удалось загрузить сообщество: $e');
+      rethrow;
     }
   }
 
@@ -44,13 +47,13 @@ class CommunityService {
     try {
       final response = await _apiClient.get('/communities/$id/members');
       if (response.data is! List) {
-        return MockData.mockCommunityMembers[id] ?? [];
+        return [];
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => CommunityMember.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load members: $e, using mock data');
-      return MockData.mockCommunityMembers[id] ?? [];
+      debugPrint('Не удалось загрузить участников: $e');
+      return [];
     }
   }
 
@@ -59,7 +62,9 @@ class CommunityService {
       final response = await _apiClient.post('/communities/$id/join');
       return CommunityModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('⚠️ Failed to join community: $e, using mock data');
+      debugPrint(
+        'Не удалось вступить в сообщество: $e. Используем mock-данные',
+      );
       return _toggleJoin(id, true);
     }
   }
@@ -69,7 +74,7 @@ class CommunityService {
       final response = await _apiClient.post('/communities/$id/leave');
       return CommunityModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('⚠️ Failed to leave community: $e, using mock data');
+      debugPrint('Не удалось выйти из сообщества: $e. Используем mock-данные');
       return _toggleJoin(id, false);
     }
   }
@@ -86,7 +91,7 @@ class CommunityService {
       );
       return CommunityModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('⚠️ Failed to create community: $e, using mock data');
+      debugPrint('Не удалось создать сообщество: $e. Используем mock-данные');
       final created = CommunityModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,

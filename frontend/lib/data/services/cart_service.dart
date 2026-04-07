@@ -12,13 +12,13 @@ class CartService {
     try {
       final response = await _apiClient.get('/cart');
       if (response.data is! List) {
-        return MockData.mockCartItems;
+        return MockData.mockCartItems.cast<CartItemModel>();
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map(CartItemModel.fromJson).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load cart: $e');
-      return MockData.mockCartItems;
+      debugPrint('Не удалось загрузить корзину: $e');
+      return MockData.mockCartItems.cast<CartItemModel>();
     }
   }
 
@@ -26,8 +26,17 @@ class CartService {
     try {
       final response = await _apiClient.post('/cart', data: item.toJson());
       return CartItemModel.fromJson(response.data as Map<String, dynamic>);
-    } catch (_) {
-      return item;
+    } catch (e) {
+      debugPrint('Не удалось добавить товар в корзину: $e');
+      final created = CartItemModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        productId: item.productId,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        imageUrl: item.imageUrl,
+      );
+      return created;
     }
   }
 
@@ -42,7 +51,17 @@ class CartService {
       );
       return CartItemModel.fromJson(response.data as Map<String, dynamic>);
     } catch (_) {
-      final original = MockData.mockCartItems.firstWhere((i) => i.id == id);
+      final original = MockData.mockCartItems.cast<CartItemModel>().firstWhere(
+        (i) => i.id == id,
+        orElse: () => CartItemModel(
+          id: id,
+          productId: '',
+          title: 'Unknown',
+          price: 0,
+          quantity: quantity,
+          imageUrl: '',
+        ),
+      );
       return CartItemModel(
         id: original.id,
         productId: original.productId,

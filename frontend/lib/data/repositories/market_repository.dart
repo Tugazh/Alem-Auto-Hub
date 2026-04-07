@@ -13,12 +13,13 @@ abstract class MarketRepository {
   });
   Future<Result<List<MarketProductModel>>> refreshProducts();
   Future<Result<MarketProductModel>> getProductDetails(String id);
+
   Future<Result<MarketProductModel>> createProduct({
     required String title,
     required String description,
     required double price,
     required String category,
-    List<String>? images,
+    String currency = 'KZT',
   });
 }
 
@@ -89,7 +90,15 @@ class MarketRepositoryImpl implements MarketRepository {
   @override
   Future<Result<MarketProductModel>> getProductDetails(String id) async {
     try {
-      final product = await remoteDataSource.getProduct(id);
+      // Assuming 'products' kind, can be parameterized if needed
+      final product = await remoteDataSource.getItem('products', id);
+
+      if (product == null) {
+        return const ResultFailure(
+          NotFoundFailure(message: 'Product not found'),
+        );
+      }
+
       return Success(product);
     } catch (e) {
       return ResultFailure(_mapExceptionToFailure(e));
@@ -102,7 +111,7 @@ class MarketRepositoryImpl implements MarketRepository {
     required String description,
     required double price,
     required String category,
-    List<String>? images,
+    String currency = 'KZT',
   }) async {
     try {
       final product = await remoteDataSource.createProduct(
@@ -110,8 +119,14 @@ class MarketRepositoryImpl implements MarketRepository {
         description: description,
         price: price,
         category: category,
-        images: images,
+        currency: currency,
       );
+
+      if (product == null) {
+        return const ResultFailure(
+          ServerFailure(message: 'Failed to create product'),
+        );
+      }
 
       // Invalidate cache
       await localDataSource.clearCache();

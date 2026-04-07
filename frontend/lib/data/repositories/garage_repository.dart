@@ -6,8 +6,8 @@ import '../datasources/garage_local_data_source.dart';
 import '../datasources/garage_remote_data_source.dart';
 import 'package:logger/logger.dart';
 
-/// Repository for garage/vehicle management
-/// Implements cache-first strategy with automatic fallback
+/// Репозиторий управления гаражом и автомобилями.
+/// Использует стратегию cache-first с автоматическим fallback.
 abstract class GarageRepository {
   Future<Result<List<CarModel>>> getVehicles();
   Future<Result<List<CarModel>>> refreshVehicles();
@@ -50,16 +50,16 @@ class GarageRepositoryImpl implements GarageRepository {
     try {
       _logger.i('Getting vehicles...');
 
-      // Check network connectivity
+      // Проверяем доступность сети.
       final isConnected = await _networkInfo.isConnected;
 
       if (isConnected) {
-        // Try to fetch from network
+        // Пытаемся получить данные из сети.
         try {
           _logger.d('Fetching vehicles from network');
           final vehicles = await _remoteDataSource.getVehicles();
 
-          // Cache the result
+          // Кэшируем результат.
           await _localDataSource.cacheVehicles(vehicles);
           _isFromCache = false;
 
@@ -67,7 +67,7 @@ class GarageRepositoryImpl implements GarageRepository {
         } catch (e) {
           _logger.w('Network fetch failed, falling back to cache: $e');
 
-          // Network failed, try cache
+          // Если сеть недоступна, пробуем кэш.
           return _getCachedVehicles();
         }
       } else {
@@ -95,7 +95,7 @@ class GarageRepositoryImpl implements GarageRepository {
 
       final vehicles = await _remoteDataSource.getVehicles();
 
-      // Update cache
+      // Обновляем кэш.
       await _localDataSource.cacheVehicles(vehicles);
       _isFromCache = false;
 
@@ -124,7 +124,7 @@ class GarageRepositoryImpl implements GarageRepository {
 
       final createdVehicle = await _remoteDataSource.createVehicle(vehicle);
 
-      // Invalidate cache to force refresh
+      // Сбрасываем кэш, чтобы принудительно обновить данные.
       await _localDataSource.clearCache();
 
       return Success(createdVehicle);
@@ -152,7 +152,7 @@ class GarageRepositoryImpl implements GarageRepository {
 
       final updatedVehicle = await _remoteDataSource.updateVehicle(vehicle);
 
-      // Invalidate cache
+      // Сбрасываем кэш.
       await _localDataSource.clearCache();
 
       return Success(updatedVehicle);
@@ -180,7 +180,7 @@ class GarageRepositoryImpl implements GarageRepository {
 
       await _remoteDataSource.deleteVehicle(vehicleId);
 
-      // Invalidate cache
+      // Сбрасываем кэш.
       await _localDataSource.clearCache();
 
       return const Success(null);
@@ -190,7 +190,7 @@ class GarageRepositoryImpl implements GarageRepository {
     }
   }
 
-  /// Get vehicles from cache with proper error handling
+  /// Получить автомобили из кэша с обработкой ошибок.
   Future<Result<List<CarModel>>> _getCachedVehicles() async {
     try {
       final cachedVehicles = await _localDataSource.getCachedVehicles();
@@ -211,7 +211,7 @@ class GarageRepositoryImpl implements GarageRepository {
     }
   }
 
-  /// Map exceptions to typed failures
+  /// Преобразовать исключение в типизированную ошибку.
   Failure _mapExceptionToFailure(dynamic exception) {
     final errorString = exception.toString().toLowerCase();
 

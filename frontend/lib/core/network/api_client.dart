@@ -40,7 +40,7 @@ class ApiClient {
 
     // Логируем базовый URL для отладки
     if (kDebugMode) {
-      print('🌐 API Base URL: $_baseUrl');
+      print('API: API Base URL: $_baseUrl');
     }
 
     _initializeInterceptors();
@@ -50,15 +50,15 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // TODO: Добавить JWT token из storage
+          // TODO: Добавить JWT-токен из хранилища.
           // final token = await SecureStorage.getToken();
           // if (token != null) {
           //   options.headers['Authorization'] = 'Bearer $token';
           // }
 
           if (kDebugMode) {
-            debugPrint('🌐 Request: ${options.method} ${options.path}');
-            debugPrint('📦 Data: ${options.data}');
+            debugPrint('API: Request: ${options.method} ${options.path}');
+            debugPrint('DATA: Data: ${options.data}');
           }
 
           return handler.next(options);
@@ -66,7 +66,7 @@ class ApiClient {
         onResponse: (response, handler) {
           if (kDebugMode) {
             debugPrint(
-              '✅ Response: ${response.statusCode} ${response.requestOptions.path}',
+              'SUCCESS: Response: ${response.statusCode} ${response.requestOptions.path}',
             );
           }
           return handler.next(response);
@@ -75,9 +75,9 @@ class ApiClient {
           if (kDebugMode) {
             if (!error.requestOptions.path.contains('/agent/message')) {
               debugPrint(
-                '❌ Error: ${error.response?.statusCode} ${error.requestOptions.path}',
+                'ERROR: Error: ${error.response?.statusCode} ${error.requestOptions.path}',
               );
-              debugPrint('📛 Message: ${error.message}');
+              debugPrint('MSG: Message: ${error.message}');
             }
           }
           return handler.next(error);

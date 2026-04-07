@@ -24,7 +24,7 @@ class CommunityModel {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      emoji: json['emoji']?.toString() ?? '🚗',
+      emoji: json['emoji']?.toString() ?? '',
       membersCount: (json['membersCount'] as num?)?.toInt() ?? 0,
       isJoined: json['isJoined'] as bool? ?? false,
       isVerified: json['isVerified'] as bool? ?? false,

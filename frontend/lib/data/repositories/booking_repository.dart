@@ -9,18 +9,20 @@ import '../../core/network/network_info.dart';
 abstract class BookingRepository {
   Future<Result<List<BookingModel>>> getBookings();
   Future<Result<List<BookingModel>>> refreshBookings();
+
   Future<Result<BookingModel>> createBooking({
-    required String serviceName,
-    required String address,
-    required DateTime date,
-    required String timeSlot,
-    required double price,
+    required String serviceCenterId,
+    required String vehicleId,
+    required DateTime scheduledAt,
+    String? notes,
   });
+
   Future<Result<BookingModel>> updateBooking({
     required String id,
-    required DateTime date,
-    required String timeSlot,
+    String? status,
+    String? notes,
   });
+
   Future<Result<void>> cancelBooking(String id);
 }
 
@@ -87,20 +89,24 @@ class BookingRepositoryImpl implements BookingRepository {
 
   @override
   Future<Result<BookingModel>> createBooking({
-    required String serviceName,
-    required String address,
-    required DateTime date,
-    required String timeSlot,
-    required double price,
+    required String serviceCenterId,
+    required String vehicleId,
+    required DateTime scheduledAt,
+    String? notes,
   }) async {
     try {
       final booking = await remoteDataSource.createBooking(
-        serviceName: serviceName,
-        address: address,
-        date: date,
-        timeSlot: timeSlot,
-        price: price,
+        serviceCenterId: serviceCenterId,
+        vehicleId: vehicleId,
+        scheduledAt: scheduledAt,
+        notes: notes,
       );
+
+      if (booking == null) {
+        return const ResultFailure(
+          ServerFailure(message: 'Failed to create booking'),
+        );
+      }
 
       // Invalidate cache to force refresh
       await localDataSource.clearCache();
@@ -114,15 +120,21 @@ class BookingRepositoryImpl implements BookingRepository {
   @override
   Future<Result<BookingModel>> updateBooking({
     required String id,
-    required DateTime date,
-    required String timeSlot,
+    String? status,
+    String? notes,
   }) async {
     try {
       final booking = await remoteDataSource.updateBooking(
         id: id,
-        date: date,
-        timeSlot: timeSlot,
+        status: status,
+        notes: notes,
       );
+
+      if (booking == null) {
+        return const ResultFailure(
+          ServerFailure(message: 'Failed to update booking'),
+        );
+      }
 
       // Invalidate cache
       await localDataSource.clearCache();

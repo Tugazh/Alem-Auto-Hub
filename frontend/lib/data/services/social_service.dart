@@ -4,9 +4,9 @@ import '../../core/network/api_client.dart';
 import '../models/social_post_model.dart';
 import '../mock/mock_data.dart';
 
-/// Social Service для работы с /api/v1/social endpoints
+/// Сервис социальной сети для работы с /api/v1/social.
 ///
-/// Endpoints:
+/// Эндпоинты:
 /// - GET /social/posts - Список постов
 /// - POST /social/posts - Создать пост
 /// - GET /social/posts/:id - Получить пост
@@ -18,9 +18,9 @@ class SocialService {
 
   SocialService(this._apiClient);
 
-  /// Получить ленту постов
+  /// Получить ленту постов.
   Future<List<SocialPostModel>> getFeed({
-    String? filter, // 'all', 'following', 'popular'
+    String? filter, // варианты: 'all', 'following', 'popular'
     int? page,
     int? limit,
   }) async {
@@ -34,16 +34,16 @@ class SocialService {
         },
       );
 
-      // Если бэкенд вернул placeholder, используем mock данные
+      // Если бекенд вернул заглушку, используем mock-данные.
       if (response.data is! List) {
-        debugPrint('⚠️ Backend not implemented, using mock data');
+        debugPrint('Backend не реализован, используются mock-данные');
         return MockData.mockSocialPosts;
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => SocialPostModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load from backend: $e, using mock data');
+      debugPrint('Не удалось загрузить из бекенда: $e. Используем mock-данные');
       return MockData.mockSocialPosts;
     }
   }
@@ -88,6 +88,20 @@ class SocialService {
     );
 
     return response.data as Map<String, dynamic>;
+  }
+
+  /// Получить комментарии к посту
+  Future<List<dynamic>> getComments(String postId) async {
+    try {
+      final response = await _apiClient.get('/social/posts/$postId/comments');
+      if (response.data is! List) {
+        return [];
+      }
+      return response.data as List<dynamic>;
+    } catch (e) {
+      debugPrint('Не удалось загрузить комментарии: $e');
+      return [];
+    }
   }
 
   /// Загрузить медиа файл (фото/видео)

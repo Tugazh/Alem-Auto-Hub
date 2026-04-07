@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/di/service_locator.dart';
 import '../../data/models/social_post_model.dart';
+import '../settings/profile_settings_page.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -25,7 +26,19 @@ class _SocialPageState extends State<SocialPage> {
           },
         ),
         title: const Text('Alem Social'),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: () {})],
+        actions: [
+          IconButton(icon: const Icon(Icons.add), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProfileSettingsPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentTabIndex,
@@ -616,7 +629,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
             'Тюнинг & Стайлинг',
             'Все о доработке автомобилей',
             '52 100 участников',
-            '🎨',
+            Icons.palette,
             false,
           ),
           const SizedBox(height: 12),
@@ -624,7 +637,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
             'BMW Клуб',
             'Официальное сообщество BMW',
             '79 090 участников',
-            '🚗',
+            Icons.directions_car,
             true,
           ),
           const SizedBox(height: 12),
@@ -632,7 +645,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
             'Тюнинг & Стайлинг',
             'Все о доработке автомобилей',
             '52 100 участников',
-            '🎨',
+            Icons.palette,
             false,
           ),
           const SizedBox(height: 12),
@@ -640,7 +653,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
             'BMW Клуб',
             'Официальное сообщество BMW',
             '79 090 участников',
-            '🚗',
+            Icons.directions_car,
             true,
           ),
           const SizedBox(height: 16),
@@ -660,7 +673,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
     String name,
     String description,
     String members,
-    String emoji,
+    IconData icon,
     bool verified,
   ) {
     return Container(
@@ -679,7 +692,7 @@ class _CommunitiesTabState extends State<CommunitiesTab>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 32)),
+              child: Icon(icon, size: 30, color: AppColors.textPrimary),
             ),
           ),
           const SizedBox(width: 12),
@@ -753,7 +766,11 @@ class ProfileTab extends StatelessWidget {
                   ),
                 ),
                 child: const Center(
-                  child: Text('🚗', style: TextStyle(fontSize: 80)),
+                  child: Icon(
+                    Icons.directions_car,
+                    size: 80,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
               Positioned(
@@ -876,7 +893,11 @@ class ProfileTab extends StatelessWidget {
                     return Container(
                       color: AppColors.surface,
                       child: const Center(
-                        child: Text('🚗', style: TextStyle(fontSize: 32)),
+                        child: Icon(
+                          Icons.directions_car,
+                          size: 32,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     );
                   },

@@ -42,7 +42,7 @@ class _PostCommentsPageState extends State<PostCommentsPage> {
         widget.post.id,
       );
       setState(() {
-        _comments = comments;
+        _comments = comments.cast<CommentModel>();
         _isLoading = false;
       });
     } catch (e) {

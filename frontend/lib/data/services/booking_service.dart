@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/booking_model.dart';
 
-/// Booking Service для работы с /api/v1/bookings
+/// Сервис бронирований для работы с /api/v1/bookings.
 ///
-/// Backend endpoints:
+/// Эндпоинты бекенда:
 /// - POST /bookings - Создать бронирование
 /// - GET /bookings - Список бронирований (с фильтрами)
 /// - GET /bookings/:id - Получить бронирование
@@ -15,7 +15,7 @@ class BookingService {
 
   BookingService(this._apiClient);
 
-  /// Получить список бронирований
+  /// Получить список бронирований.
   Future<List<BookingModel>> getBookings({
     String? serviceCenterId,
     String? vehicleId,
@@ -32,14 +32,14 @@ class BookingService {
       );
 
       if (response.data is! List) {
-        debugPrint('⚠️ Bookings API: unexpected response format');
+        debugPrint('Bookings API: неожиданный формат ответа');
         return [];
       }
 
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map((json) => BookingModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Failed to load bookings: $e');
+      debugPrint('Не удалось загрузить бронирования: $e');
       return [];
     }
   }
@@ -64,7 +64,7 @@ class BookingService {
 
       return BookingModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to create booking: $e');
+      debugPrint('Не удалось создать бронирование: $e');
       return null;
     }
   }
@@ -75,7 +75,7 @@ class BookingService {
       final response = await _apiClient.get('/bookings/$id');
       return BookingModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to load booking: $e');
+      debugPrint('Не удалось загрузить бронирование: $e');
       return null;
     }
   }
@@ -97,7 +97,7 @@ class BookingService {
 
       return BookingModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Failed to update booking: $e');
+      debugPrint('Не удалось обновить бронирование: $e');
       return null;
     }
   }
@@ -113,7 +113,7 @@ class BookingService {
       await _apiClient.delete('/bookings/$id');
       return true;
     } catch (e) {
-      debugPrint('❌ Failed to delete booking: $e');
+      debugPrint('Не удалось удалить бронирование: $e');
       return false;
     }
   }

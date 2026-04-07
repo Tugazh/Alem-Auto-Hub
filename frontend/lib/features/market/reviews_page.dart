@@ -91,7 +91,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                Text('★' * review.rating),
+                                Text('Оценка: ${review.rating}'),
                               ],
                             ),
                             const SizedBox(height: 6),

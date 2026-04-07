@@ -56,14 +56,14 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      booking.serviceName,
+                      booking.serviceCenterId,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      booking.address,
+                      booking.vehicleId,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -72,10 +72,10 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                     Row(
                       children: [
                         Text(
-                          '${booking.date.day}.${booking.date.month}.${booking.date.year}',
+                          '${booking.scheduledAt.day}.${booking.scheduledAt.month}.${booking.scheduledAt.year}',
                         ),
                         const SizedBox(width: 12),
-                        Text(booking.timeSlot),
+                        Text(booking.status),
                         const Spacer(),
                         Text(
                           booking.status == 'completed'
@@ -115,11 +115,12 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                                       ),
                                     );
                                     if (!mounted || slot == null) return;
+                                    // TODO: Обновить под новую структуру API.
                                     await ServiceLocator().bookingService
-                                        .rescheduleBooking(
+                                        .updateBooking(
                                           id: booking.id,
-                                          date: date,
-                                          timeSlot: slot,
+                                          notes:
+                                              'Rescheduled to $date at $slot',
                                         );
                                     if (!mounted) return;
                                     setState(() {

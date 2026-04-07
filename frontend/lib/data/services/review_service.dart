@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/review_model.dart';
-import '../mock/mock_data.dart';
 
 class ReviewService {
   final ApiClient _apiClient;
@@ -15,17 +14,13 @@ class ReviewService {
         queryParameters: {'productId': productId},
       );
       if (response.data is! List) {
-        return MockData.mockReviews
-            .where((review) => review.productId == productId)
-            .toList();
+        return [];
       }
       final list = List<Map<String, dynamic>>.from(response.data);
       return list.map(ReviewModel.fromJson).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load reviews: $e');
-      return MockData.mockReviews
-          .where((review) => review.productId == productId)
-          .toList();
+      debugPrint('Не удалось загрузить отзывы: $e');
+      return [];
     }
   }
 

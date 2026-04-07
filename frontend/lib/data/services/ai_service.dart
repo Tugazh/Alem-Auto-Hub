@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 
 import '../../core/network/api_client.dart';
 
-/// AI Service для работы с /api/v1/ai endpoints
+/// Сервис ИИ для работы с /api/v1/ai.
 ///
-/// Endpoints:
+/// Эндпоинты:
 /// - POST /ai/chat - AI чат (OpenAI GPT-4o)
 /// - POST /ai/analyze - Анализ данных
 /// - POST /ai/recommend - Рекомендации
@@ -16,7 +16,7 @@ class AIService {
 
   AIService(this._apiClient);
 
-  /// Отправить сообщение в AI чат
+  /// Отправить сообщение в ИИ-чат.
   Future<Map<String, dynamic>> sendChatMessage({
     required String userId,
     required String message,
@@ -61,7 +61,7 @@ class AIService {
     return _fallbackMessage;
   }
 
-  /// Анализ фото повреждений автомобиля
+  /// Анализ фото повреждений автомобиля.
   Future<Map<String, dynamic>> analyzeDamage({
     required String imageBase64,
     String? carModel,
@@ -78,7 +78,7 @@ class AIService {
     return response.data as Map<String, dynamic>;
   }
 
-  /// Получить рекомендации по обслуживанию
+  /// Получить рекомендации по обслуживанию.
   Future<List<Map<String, dynamic>>> getMaintenanceRecommendations({
     required String carModel,
     required int mileage,
@@ -97,7 +97,7 @@ class AIService {
     return List<Map<String, dynamic>>.from(response.data);
   }
 
-  /// Диагностика проблем по симптомам
+  /// Диагностика проблем по симптомам.
   Future<Map<String, dynamic>> diagnoseProblem({
     required String symptoms,
     required String carModel,

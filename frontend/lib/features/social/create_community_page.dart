@@ -12,7 +12,7 @@ class CreateCommunityPage extends StatefulWidget {
 class _CreateCommunityPageState extends State<CreateCommunityPage> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _emojiController = TextEditingController(text: '🚗');
+  final _emojiController = TextEditingController(text: '');
   bool _isSaving = false;
 
   @override
@@ -82,7 +82,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
       emoji: _emojiController.text.trim().isEmpty
-          ? '🚗'
+          ? ''
           : _emojiController.text.trim(),
     );
 

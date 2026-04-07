@@ -42,13 +42,33 @@ dependencies:
   
   # Google Fonts
   google_fonts: ^6.1.0
+  
+  # Network & API
   dio: ^5.9.0
+  connectivity_plus: ^6.0.5
+  
+  # State Management & DI
+  get_it: ^8.0.3
+  equatable: ^2.0.5
+  flutter_bloc: ^8.1.6
+  
+  # Routing
+  go_router: ^14.6.2
+  
+  # Data serialization
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
-  get_it: ^8.0.3
+  
+  # UI & Media
   o3d: ^3.1.2
   file_picker: ^8.3.7
+  path_provider: ^2.1.4
+  
+  # Storage
   shared_preferences: ^2.2.2
+  
+  # Utils
+  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +103,8 @@ flutter:
     - assets/3d/
     # General images
     - assets/images/
+    # Onboarding images
+    - assets/images/onboarding/
     # Car photos
     - assets/cars/
     # User avatars

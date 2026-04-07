@@ -42,7 +42,7 @@ class SearchCommunityModel {
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       membersCount: (json['membersCount'] as num?)?.toInt() ?? 0,
-      emoji: json['emoji']?.toString() ?? '🚗',
+      emoji: json['emoji']?.toString() ?? '',
     );
   }
 }

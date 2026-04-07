@@ -5,7 +5,7 @@ import 'social_state.dart';
 import '../../../data/repositories/social_repository.dart';
 import '../../../core/error/result.dart';
 
-/// BLoC for managing social feed
+/// BLoC для управления лентой сообщества.
 class SocialBloc extends Bloc<SocialEvent, SocialState> {
   final SocialRepository repository;
   final Logger _logger = Logger();
@@ -21,31 +21,31 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
     on<DeletePost>(_onDeletePost);
   }
 
-  /// Load feed (cache-first strategy)
+  /// Загрузить ленту (стратегия cache-first).
   Future<void> _onLoadFeed(LoadFeed event, Emitter<SocialState> emit) async {
-    _logger.i('📥 Loading social feed...');
+    _logger.i('Загрузка ленты сообщества...');
     emit(const SocialLoading());
 
     final result = await repository.getFeed();
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to load feed: ${failure.message}');
+        _logger.e('ERROR: Failed to load feed: ${failure.message}');
         emit(SocialError(failure));
       },
       (posts) {
-        _logger.i('✅ Loaded ${posts.length} posts');
+        _logger.i('SUCCESS: Loaded ${posts.length} posts');
         emit(SocialFeedLoaded(posts: posts, isFromCache: result is Success));
       },
     );
   }
 
-  /// Refresh feed (force network)
+  /// Обновить ленту (принудительно из сети).
   Future<void> _onRefreshFeed(
     RefreshFeed event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('🔄 Refreshing feed...');
+    _logger.i('Обновление ленты...');
 
     if (state is SocialFeedLoaded) {
       emit(const SocialLoading(isRefreshing: true));
@@ -57,7 +57,7 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to refresh: ${failure.message}');
+        _logger.e('ERROR: Failed to refresh: ${failure.message}');
 
         if (state is SocialFeedLoaded) {
           final currentState = state as SocialFeedLoaded;
@@ -67,7 +67,7 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
         }
       },
       (posts) {
-        _logger.i('✅ Refreshed ${posts.length} posts');
+        _logger.i('SUCCESS: Refreshed ${posts.length} posts');
         final currentState = state;
         emit(
           SocialFeedLoaded(
@@ -84,23 +84,23 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
     );
   }
 
-  /// Filter feed by type
+  /// Отфильтровать ленту по типу.
   Future<void> _onFilterFeed(
     FilterFeed event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('🔍 Filtering feed: ${event.filter}');
+    _logger.i('Фильтрация ленты: ${event.filter}');
     emit(const SocialLoading());
 
     final result = await repository.getFeed(filter: event.filter);
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to filter: ${failure.message}');
+        _logger.e('ERROR: Failed to filter: ${failure.message}');
         emit(SocialError(failure));
       },
       (posts) {
-        _logger.i('✅ Filtered: ${posts.length} posts');
+        _logger.i('SUCCESS: Filtered: ${posts.length} posts');
         final currentState = state;
         emit(
           SocialFeedLoaded(
@@ -115,34 +115,34 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
     );
   }
 
-  /// Load post details
+  /// Загрузить детали поста.
   Future<void> _onLoadPostDetails(
     LoadPostDetails event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('📦 Loading post details: ${event.postId}');
+    _logger.i('DATA: Loading post details: ${event.postId}');
     emit(const SocialLoading());
 
     final result = await repository.getPost(event.postId);
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to load post: ${failure.message}');
+        _logger.e('ERROR: Failed to load post: ${failure.message}');
         emit(SocialError(failure));
       },
       (post) {
-        _logger.i('✅ Post loaded: ${post.id}');
+        _logger.i('SUCCESS: Post loaded: ${post.id}');
         emit(SocialPostDetailsLoaded(post));
       },
     );
   }
 
-  /// Create new post
+  /// Создать новый пост.
   Future<void> _onCreatePost(
     CreatePost event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('➕ Creating post...');
+    _logger.i('Создание поста...');
     emit(const SocialOperationInProgress('create'));
 
     final result = await repository.createPost(
@@ -153,20 +153,20 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to create post: ${failure.message}');
+        _logger.e('ERROR: Failed to create post: ${failure.message}');
         emit(SocialError(failure));
       },
       (post) {
-        _logger.i('✅ Post created: ${post.id}');
+        _logger.i('SUCCESS: Post created: ${post.id}');
         emit(const SocialOperationSuccess('create', 'Пост опубликован'));
 
-        // Reload feed
+        // Перезагрузка ленты.
         add(const LoadFeed());
       },
     );
   }
 
-  /// Toggle like on post
+  /// Переключить лайк на посте.
   Future<void> _onToggleLike(
     ToggleLike event,
     Emitter<SocialState> emit,
@@ -176,23 +176,23 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
       final likedIds = Set<String>.from(currentState.likedPostIds);
       final isLiked = likedIds.contains(event.postId);
 
-      // Optimistic update
+      // Оптимистичное обновление.
       if (isLiked) {
         likedIds.remove(event.postId);
-        _logger.i('💔 Unliked: ${event.postId}');
+        _logger.i('Лайк снят: ${event.postId}');
       } else {
         likedIds.add(event.postId);
-        _logger.i('❤️ Liked: ${event.postId}');
+        _logger.i('Лайк поставлен: ${event.postId}');
       }
 
       emit(currentState.copyWith(likedPostIds: likedIds));
 
-      // Send to backend
+      // Отправка в бекенд.
       try {
         await repository.likePost(event.postId);
       } catch (e) {
-        // Revert on error
-        _logger.e('❌ Failed to toggle like: $e');
+        // Откат при ошибке.
+        _logger.e('ERROR: Failed to toggle like: $e');
         if (isLiked) {
           likedIds.add(event.postId);
         } else {
@@ -203,12 +203,12 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
     }
   }
 
-  /// Add comment to post
+  /// Добавить комментарий к посту.
   Future<void> _onAddComment(
     AddComment event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('💬 Adding comment to: ${event.postId}');
+    _logger.i('Добавление комментария к: ${event.postId}');
     emit(const SocialOperationInProgress('comment'));
 
     final result = await repository.addComment(
@@ -218,39 +218,39 @@ class SocialBloc extends Bloc<SocialEvent, SocialState> {
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to add comment: ${failure.message}');
+        _logger.e('ERROR: Failed to add comment: ${failure.message}');
         emit(SocialError(failure));
       },
       (_) {
-        _logger.i('✅ Comment added');
+        _logger.i('SUCCESS: Comment added');
         emit(const SocialOperationSuccess('comment', 'Комментарий добавлен'));
 
-        // Reload feed
+        // Перезагрузка ленты.
         add(const LoadFeed());
       },
     );
   }
 
-  /// Delete post
+  /// Удалить пост.
   Future<void> _onDeletePost(
     DeletePost event,
     Emitter<SocialState> emit,
   ) async {
-    _logger.i('🗑️ Deleting post: ${event.postId}');
+    _logger.i('Удаление поста: ${event.postId}');
     emit(const SocialOperationInProgress('delete'));
 
     final result = await repository.deletePost(event.postId);
 
     result.fold(
       (failure) {
-        _logger.e('❌ Failed to delete post: ${failure.message}');
+        _logger.e('ERROR: Failed to delete post: ${failure.message}');
         emit(SocialError(failure));
       },
       (_) {
-        _logger.i('✅ Post deleted');
+        _logger.i('SUCCESS: Post deleted');
         emit(const SocialOperationSuccess('delete', 'Пост удален'));
 
-        // Reload feed
+        // Перезагрузка ленты.
         add(const LoadFeed());
       },
     );
