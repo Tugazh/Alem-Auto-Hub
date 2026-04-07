@@ -7,6 +7,9 @@ import '../../data/services/ai_service.dart';
 import '../../data/services/market_service.dart';
 import '../../data/services/social_service.dart';
 import '../../data/services/maintenance_service.dart';
+import '../../data/services/booking_service.dart';
+import '../../data/services/fines_service.dart';
+import '../../data/services/warehouse_service.dart';
 
 /// Service Locator для управления зависимостями
 ///
@@ -28,6 +31,9 @@ class ServiceLocator {
   late final MarketService _marketService;
   late final SocialService _socialService;
   late final MaintenanceService _maintenanceService;
+  late final BookingService _bookingService;
+  late final FinesService _finesService;
+  late final WarehouseService _warehouseService;
 
   bool _initialized = false;
 
@@ -52,6 +58,9 @@ class ServiceLocator {
     _marketService = MarketService(_apiClient);
     _socialService = SocialService(_apiClient);
     _maintenanceService = MaintenanceService(_apiClient, _cacheService);
+    _bookingService = BookingService(_apiClient);
+    _finesService = FinesService(_apiClient);
+    _warehouseService = WarehouseService(_apiClient);
 
     _initialized = true;
     debugPrint('✅ All services initialized successfully');
@@ -96,5 +105,20 @@ class ServiceLocator {
   MaintenanceService get maintenanceService {
     _ensureInitialized();
     return _maintenanceService;
+  }
+
+  BookingService get bookingService {
+    _ensureInitialized();
+    return _bookingService;
+  }
+
+  FinesService get finesService {
+    _ensureInitialized();
+    return _finesService;
+  }
+
+  WarehouseService get warehouseService {
+    _ensureInitialized();
+    return _warehouseService;
   }
 }

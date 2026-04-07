@@ -1,47 +1,71 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'fine_model.g.dart';
+
+/// Fine model для /api/v1/fines
+/// Backend: id, user_id, vehicle_id, amount, currency, article, description, issued_at, paid_at, status
+@JsonSerializable()
 class FineModel {
   final String id;
-  final String title;
-  final String description;
-  final String status; // unpaid, paid
+
+  @JsonKey(name: 'user_id')
+  final String userId;
+
+  @JsonKey(name: 'vehicle_id')
+  final String? vehicleId;
+
   final double amount;
+  final String currency;
+  final String? article; // Статья КоАП
+  final String description;
+
+  @JsonKey(name: 'issued_at')
   final DateTime issuedAt;
-  final String location;
+
+  @JsonKey(name: 'paid_at')
+  final DateTime? paidAt;
+
+  final String status; // pending, paid, disputed
+
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final DateTime? updatedAt;
+
+  // Дополнительные поля для UI
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? location;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final String? photoUrl;
 
   const FineModel({
     required this.id,
-    required this.title,
-    required this.description,
-    required this.status,
+    required this.userId,
+    this.vehicleId,
     required this.amount,
+    this.currency = 'KZT',
+    this.article,
+    required this.description,
     required this.issuedAt,
-    required this.location,
+    this.paidAt,
+    required this.status,
+    this.createdAt,
+    this.updatedAt,
+    this.location,
     this.photoUrl,
   });
 
-  factory FineModel.fromJson(Map<String, dynamic> json) {
-    return FineModel(
-      id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'unpaid',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0,
-      issuedAt:
-          DateTime.tryParse(json['issuedAt']?.toString() ?? '') ??
-          DateTime.now(),
-      location: json['location']?.toString() ?? '',
-      photoUrl: json['photoUrl']?.toString(),
-    );
-  }
+  factory FineModel.fromJson(Map<String, dynamic> json) =>
+      _$FineModelFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'status': status,
-    'amount': amount,
-    'issuedAt': issuedAt.toIso8601String(),
-    'location': location,
-    'photoUrl': photoUrl,
-  };
+  Map<String, dynamic> toJson() => _$FineModelToJson(this);
+
+  // Helpers
+  bool get isPending => status == 'pending';
+  bool get isPaid => status == 'paid';
+  bool get isDisputed => status == 'disputed';
+  String get amountFormatted => '${amount.toStringAsFixed(0)} ₸';
+  String get title => article ?? 'Штраф';
 }

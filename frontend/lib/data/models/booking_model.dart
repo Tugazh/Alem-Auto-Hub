@@ -1,39 +1,68 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'booking_model.g.dart';
+
+/// Booking model для /api/v1/bookings
+/// Backend: id, service_center_id, vehicle_id, user_id, scheduled_at, status, notes
+@JsonSerializable()
 class BookingModel {
   final String id;
-  final String serviceName;
-  final String address;
-  final DateTime date;
-  final String timeSlot;
-  final String status; // upcoming, completed, cancelled
-  final double price;
+
+  @JsonKey(name: 'service_center_id')
+  final String serviceCenterId;
+
+  @JsonKey(name: 'vehicle_id')
+  final String vehicleId;
+
+  @JsonKey(name: 'user_id')
+  final String userId;
+
+  @JsonKey(name: 'scheduled_at')
+  final DateTime scheduledAt;
+
+  final String status; // scheduled, completed, cancelled, no_show
+  final String? notes;
+
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final DateTime? updatedAt;
+
+  // Дополнительные поля для UI
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? serviceName;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? address;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final double? price;
 
   const BookingModel({
     required this.id,
-    required this.serviceName,
-    required this.address,
-    required this.date,
-    required this.timeSlot,
+    required this.serviceCenterId,
+    required this.vehicleId,
+    required this.userId,
+    required this.scheduledAt,
     required this.status,
-    required this.price,
+    this.notes,
+    this.createdAt,
+    this.updatedAt,
+    this.serviceName,
+    this.address,
+    this.price,
   });
 
-  factory BookingModel.fromJson(Map<String, dynamic> json) => BookingModel(
-    id: json['id']?.toString() ?? '',
-    serviceName: json['serviceName']?.toString() ?? '',
-    address: json['address']?.toString() ?? '',
-    date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
-    timeSlot: json['timeSlot']?.toString() ?? '',
-    status: json['status']?.toString() ?? 'upcoming',
-    price: (json['price'] as num?)?.toDouble() ?? 0,
-  );
+  factory BookingModel.fromJson(Map<String, dynamic> json) =>
+      _$BookingModelFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'serviceName': serviceName,
-    'address': address,
-    'date': date.toIso8601String(),
-    'timeSlot': timeSlot,
-    'status': status,
-    'price': price,
-  };
+  Map<String, dynamic> toJson() => _$BookingModelToJson(this);
+
+  // Helpers
+  bool get isScheduled => status == 'scheduled';
+  bool get isCompleted => status == 'completed';
+  bool get isCancelled => status == 'cancelled';
+  String get timeSlot =>
+      '${scheduledAt.hour}:${scheduledAt.minute.toString().padLeft(2, '0')}';
 }

@@ -1,22 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'market_product_model.dart';
+part of 'warehouse_part_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-MarketProductModel _$MarketProductModelFromJson(Map<String, dynamic> json) =>
-    MarketProductModel(
+WarehousePartModel _$WarehousePartModelFromJson(Map<String, dynamic> json) =>
+    WarehousePartModel(
       id: json['id'] as String,
-      userId: json['user_id'] as String,
-      kind: json['kind'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      price: (json['price'] as num).toDouble(),
+      name: json['name'] as String,
+      partNumber: json['part_number'] as String,
       category: json['category'] as String,
+      manufacturer: json['manufacturer'] as String?,
+      description: json['description'] as String?,
+      price: (json['price'] as num?)?.toDouble(),
       currency: json['currency'] as String? ?? 'KZT',
-      available: json['available'] as bool? ?? true,
+      quantityInStock: (json['quantity_in_stock'] as num).toInt(),
+      minStockLevel: (json['min_stock_level'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -25,17 +26,18 @@ MarketProductModel _$MarketProductModelFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated_at'] as String),
     );
 
-Map<String, dynamic> _$MarketProductModelToJson(MarketProductModel instance) =>
+Map<String, dynamic> _$WarehousePartModelToJson(WarehousePartModel instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'user_id': instance.userId,
-      'kind': instance.kind,
-      'title': instance.title,
+      'name': instance.name,
+      'part_number': instance.partNumber,
+      'category': instance.category,
+      'manufacturer': instance.manufacturer,
       'description': instance.description,
       'price': instance.price,
-      'category': instance.category,
       'currency': instance.currency,
-      'available': instance.available,
+      'quantity_in_stock': instance.quantityInStock,
+      'min_stock_level': instance.minStockLevel,
       'created_at': instance.createdAt?.toIso8601String(),
       'updated_at': instance.updatedAt?.toIso8601String(),
     };

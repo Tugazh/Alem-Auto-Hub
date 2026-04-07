@@ -1,89 +1,120 @@
 import 'package:flutter/foundation.dart';
 import '../../core/network/api_client.dart';
 import '../models/booking_model.dart';
-import '../mock/mock_data.dart';
 
+/// Booking Service для работы с /api/v1/bookings
+///
+/// Backend endpoints:
+/// - POST /bookings - Создать бронирование
+/// - GET /bookings - Список бронирований (с фильтрами)
+/// - GET /bookings/:id - Получить бронирование
+/// - PATCH /bookings/:id - Обновить бронирование (статус, заметки)
+/// - DELETE /bookings/:id - Удалить бронирование
 class BookingService {
   final ApiClient _apiClient;
 
   BookingService(this._apiClient);
 
-  Future<List<BookingModel>> getBookings() async {
+  /// Получить список бронирований
+  Future<List<BookingModel>> getBookings({
+    String? serviceCenterId,
+    String? vehicleId,
+    String? status,
+  }) async {
     try {
-      final response = await _apiClient.get('/bookings');
+      final response = await _apiClient.get(
+        '/bookings',
+        queryParameters: {
+          if (serviceCenterId != null) 'service_center_id': serviceCenterId,
+          if (vehicleId != null) 'vehicle_id': vehicleId,
+          if (status != null) 'status': status,
+        },
+      );
+
       if (response.data is! List) {
-        return MockData.mockBookings;
+        debugPrint('⚠️ Bookings API: unexpected response format');
+        return [];
       }
+
       final list = List<Map<String, dynamic>>.from(response.data);
-      return list.map(BookingModel.fromJson).toList();
+      return list.map((json) => BookingModel.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('⚠️ Failed to load bookings: $e');
-      return MockData.mockBookings;
+      debugPrint('❌ Failed to load bookings: $e');
+      return [];
     }
   }
 
-  Future<BookingModel> createBooking({
-    required String serviceName,
-    required String address,
-    required DateTime date,
-    required String timeSlot,
-    required double price,
+  /// Создать новое бронирование
+  Future<BookingModel?> createBooking({
+    required String serviceCenterId,
+    required String vehicleId,
+    required DateTime scheduledAt,
+    String? notes,
   }) async {
     try {
       final response = await _apiClient.post(
         '/bookings',
         data: {
-          'serviceName': serviceName,
-          'address': address,
-          'date': date.toIso8601String(),
-          'timeSlot': timeSlot,
-          'price': price,
+          'service_center_id': serviceCenterId,
+          'vehicle_id': vehicleId,
+          'scheduled_at': scheduledAt.toIso8601String(),
+          if (notes != null) 'notes': notes,
         },
       );
+
       return BookingModel.fromJson(response.data as Map<String, dynamic>);
-    } catch (_) {
-      return BookingModel(
-        id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
-        serviceName: serviceName,
-        address: address,
-        date: date,
-        timeSlot: timeSlot,
-        status: 'upcoming',
-        price: price,
-      );
+    } catch (e) {
+      debugPrint('❌ Failed to create booking: $e');
+      return null;
     }
   }
 
-  Future<BookingModel> rescheduleBooking({
+  /// Получить бронирование по ID
+  Future<BookingModel?> getBooking(String id) async {
+    try {
+      final response = await _apiClient.get('/bookings/$id');
+      return BookingModel.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('❌ Failed to load booking: $e');
+      return null;
+    }
+  }
+
+  /// Обновить бронирование (изменить статус или заметки)
+  Future<BookingModel?> updateBooking({
     required String id,
-    required DateTime date,
-    required String timeSlot,
+    String? status,
+    String? notes,
   }) async {
     try {
       final response = await _apiClient.put(
         '/bookings/$id',
-        data: {'date': date.toIso8601String(), 'timeSlot': timeSlot},
+        data: {
+          if (status != null) 'status': status,
+          if (notes != null) 'notes': notes,
+        },
       );
+
       return BookingModel.fromJson(response.data as Map<String, dynamic>);
-    } catch (_) {
-      final original = MockData.mockBookings.firstWhere(
-        (item) => item.id == id,
-      );
-      return BookingModel(
-        id: id,
-        serviceName: original.serviceName,
-        address: original.address,
-        date: date,
-        timeSlot: timeSlot,
-        status: original.status,
-        price: original.price,
-      );
+    } catch (e) {
+      debugPrint('❌ Failed to update booking: $e');
+      return null;
     }
   }
 
-  Future<void> cancelBooking(String id) async {
+  /// Отменить бронирование
+  Future<bool> cancelBooking(String id) async {
+    return await updateBooking(id: id, status: 'cancelled') != null;
+  }
+
+  /// Удалить бронирование
+  Future<bool> deleteBooking(String id) async {
     try {
       await _apiClient.delete('/bookings/$id');
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to delete booking: $e');
+      return false;
+    }
   }
 }
